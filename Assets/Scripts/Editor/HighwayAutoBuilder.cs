@@ -168,9 +168,13 @@ namespace RhythmGame.Editor
             GameObject noteRoot = new GameObject("NotePrefab");
             NoteObject noteComp = noteRoot.AddComponent<NoteObject>();
 
-            Shader unlitShader = Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default")
-                                 ?? Shader.Find("Sprites/Default");
-            Material unlitMat = new Material(unlitShader);
+            Material unlitMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/SpriteUnlit.mat");
+            if (unlitMat == null)
+            {
+                Shader unlitShader = Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default")
+                                     ?? Shader.Find("Sprites/Default");
+                unlitMat = new Material(unlitShader);
+            }
 
             Sprite[] notes = new Sprite[]
             {
@@ -246,6 +250,7 @@ namespace RhythmGame.Editor
             so.FindProperty("holdBodySpriteRenderer").objectReferenceValue = bodySr;
             so.FindProperty("holdRingRenderer").objectReferenceValue = ringSr;
             so.FindProperty("holdRingSprite").objectReferenceValue = holdRing;
+            so.FindProperty("defaultUnlitMaterial").objectReferenceValue = unlitMat;
 
             SerializedProperty laneSpritesProp = so.FindProperty("laneSprites");
             SerializedProperty hollowProp = so.FindProperty("holdHollowSprites");

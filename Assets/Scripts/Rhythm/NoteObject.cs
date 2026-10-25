@@ -29,6 +29,7 @@ namespace RhythmGame
         [SerializeField] private SpriteRenderer holdBodySpriteRenderer;
         [SerializeField] private SpriteRenderer holdRingRenderer;
         [SerializeField] private LineRenderer holdBodyRenderer;
+        [SerializeField] private Material defaultUnlitMaterial;
 
         [Header("Cyberpunk Piksel Sprite Setleri")]
         [SerializeField] private Sprite[] laneSprites = new Sprite[4];
@@ -57,19 +58,32 @@ namespace RhythmGame
 
         private void EnsureChildRenderers()
         {
+#if UNITY_EDITOR
+            if (defaultUnlitMaterial == null)
+            {
+                defaultUnlitMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/SpriteUnlit.mat");
+            }
+#endif
+
             if (headRenderer == null)
             {
                 Transform h = transform.Find("Head");
                 if (h != null) headRenderer = h.GetComponent<SpriteRenderer>();
             }
+            if (headRenderer != null && defaultUnlitMaterial != null && headRenderer.sharedMaterial == null)
+            {
+                headRenderer.sharedMaterial = defaultUnlitMaterial;
+            }
+
             if (tailRenderer == null)
             {
                 Transform t = transform.Find("Tail");
                 if (t != null) tailRenderer = t.GetComponent<SpriteRenderer>();
             }
-
-            Shader unlitShader = Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default")
-                                 ?? Shader.Find("Sprites/Default");
+            if (tailRenderer != null && defaultUnlitMaterial != null && tailRenderer.sharedMaterial == null)
+            {
+                tailRenderer.sharedMaterial = defaultUnlitMaterial;
+            }
 
             if (holdBodySpriteRenderer == null)
             {
@@ -81,8 +95,11 @@ namespace RhythmGame
                     b = bodyObj.transform;
                 }
                 holdBodySpriteRenderer = b.GetComponent<SpriteRenderer>() ?? b.gameObject.AddComponent<SpriteRenderer>();
-                holdBodySpriteRenderer.material = new Material(unlitShader);
                 holdBodySpriteRenderer.sortingOrder = 8;
+            }
+            if (holdBodySpriteRenderer != null && defaultUnlitMaterial != null)
+            {
+                holdBodySpriteRenderer.sharedMaterial = defaultUnlitMaterial;
             }
 
             if (holdRingRenderer == null)
@@ -95,9 +112,12 @@ namespace RhythmGame
                     r = ringObj.transform;
                 }
                 holdRingRenderer = r.GetComponent<SpriteRenderer>() ?? r.gameObject.AddComponent<SpriteRenderer>();
-                holdRingRenderer.material = new Material(unlitShader);
                 holdRingRenderer.sortingOrder = 12;
                 holdRingRenderer.enabled = false;
+            }
+            if (holdRingRenderer != null && defaultUnlitMaterial != null)
+            {
+                holdRingRenderer.sharedMaterial = defaultUnlitMaterial;
             }
 
             if (holdBodyRenderer == null)
@@ -149,6 +169,11 @@ namespace RhythmGame
             if (holdRingSprite == null)
             {
                 holdRingSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Sliced/Gameplay/HoldRing_Glow.png");
+            }
+
+            if (defaultUnlitMaterial == null)
+            {
+                defaultUnlitMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/SpriteUnlit.mat");
             }
 #endif
         }
