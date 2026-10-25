@@ -20,7 +20,7 @@ namespace RhythmGame.Editor
             Debug.Log("<color=#00e5ff><b>[HighwayAutoBuilder]</b> Highway ve 4 şeritli Piano Tiles sistemi inşa ediliyor...</color>");
 
             // 1. Sprite ayarlarını Point Filter & Uncompressed olarak doğrula
-            Rhythm.Editor.PixelAssetImporter.SetupAllSlicedSprites();
+            PixelAssetImporter.SetupAllSlicedSprites();
 
             // 2. Sahnede eski kalıntıları temizle
             HighwayVisuals.CleanLeftoverSceneObjects();
