@@ -170,17 +170,17 @@ namespace RhythmGame
             GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
             GUI.color = Color.white;
 
-            float panelW = 430f;
-            float panelH = hasGameStarted ? 470f : 400f;
-            if (showOptionsPanel) panelH = 470f;
+            float panelW = 460f;
+            float panelH = hasGameStarted ? 460f : 390f;
+            if (showOptionsPanel) panelH = 460f;
 
             float panelX = (Screen.width - panelW) / 2f;
             float panelY = (Screen.height - panelH) / 2f;
 
-            // Orijinal Cyberpunk UI Çerçevesi
+            // Orijinal Cyberpunk UI Çerçevesi (Artık altındaki ok tuşları tamamen kaldırıldı)
             if (frameTex != null)
             {
-                GUI.DrawTexture(new Rect(panelX - 10, panelY - 10, panelW + 20, panelH + 20), frameTex, ScaleMode.StretchToFill);
+                GUI.DrawTexture(new Rect(panelX, panelY, panelW, panelH), frameTex, ScaleMode.StretchToFill);
             }
             else
             {
@@ -196,7 +196,7 @@ namespace RhythmGame
             };
             titleStyle.normal.textColor = new Color(0f, 0.95f, 1f, 1f);
             string titleText = !hasGameStarted ? "PIXEL BEAT" : "PAUSED";
-            GUI.Label(new Rect(panelX, panelY + 22f, panelW, 36f), titleText, titleStyle);
+            GUI.Label(new Rect(panelX, panelY + 28f, panelW, 36f), titleText, titleStyle);
 
             if (showOptionsPanel)
             {
@@ -204,16 +204,15 @@ namespace RhythmGame
                 return;
             }
 
-            // Buton Boyutu (126x35 piksel oranına sadık: 252x70)
-            float btnW = 252f;
-            float btnH = 70f;
-            float btnX = (Screen.width - btnW) / 2f;
-            float currentY = panelY + 80f;
-            float spacing = 82f;
-
             if (!hasGameStarted)
             {
                 // --- OYUNA GİRMEDEN ÖNCEKİ ANA MENÜ (PRE-GAME MAIN MENU) ---
+                float btnW = 236f;
+                float btnH = 60f;
+                float btnX = (Screen.width - btnW) / 2f;
+                float currentY = panelY + 90f;
+                float spacing = 74f;
+
                 // 1. START
                 if (DrawPixelButton(new Rect(btnX, currentY, btnW, btnH), btnStartTex, "START"))
                 {
@@ -221,14 +220,14 @@ namespace RhythmGame
                 }
                 currentY += spacing;
 
-                // 2. OPTIONS (Kontroller & MP3 Yükleyici)
+                // 2. OPTIONS
                 if (DrawPixelButton(new Rect(btnX, currentY, btnW, btnH), btnOptionsTex, "OPTIONS"))
                 {
                     showOptionsPanel = true;
                 }
                 currentY += spacing;
 
-                // 3. QUIT
+                // 3. QUIT (Çerçevenin içinde, taşma olmadan kusursuz konumlandı)
                 if (DrawPixelButton(new Rect(btnX, currentY, btnW, btnH), btnQuitTex, "QUIT"))
                 {
                     QuitGame();
@@ -237,6 +236,12 @@ namespace RhythmGame
             else
             {
                 // --- OYUN İÇİ DURAKLATMA MENÜSÜ (PAUSE MENU) ---
+                float btnW = 224f;
+                float btnH = 56f;
+                float btnX = (Screen.width - btnW) / 2f;
+                float currentY = panelY + 84f;
+                float spacing = 68f;
+
                 // 1. RESUME
                 if (DrawPixelButton(new Rect(btnX, currentY, btnW, btnH), btnResumeTex, "RESUME"))
                 {

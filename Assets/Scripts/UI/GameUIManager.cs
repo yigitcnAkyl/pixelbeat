@@ -26,7 +26,6 @@ namespace RhythmGame
 
         [Header("Dahili Arayüz Gösterimi")]
         [SerializeField] private bool enableBuiltInOverlay = true;
-        [SerializeField] private Texture2D hudFrameTex;
 
         private string currentJudgementStr = "";
         private Color currentJudgementColor = Color.white;
@@ -37,6 +36,7 @@ namespace RhythmGame
         private int displayedScore = 0;
         private int displayedCombo = 0;
         private int displayedMultiplier = 1;
+        private float comboPulseScale = 1.0f;
 
         private void Awake()
         {
@@ -46,12 +46,6 @@ namespace RhythmGame
                 return;
             }
             Instance = this;
-#if UNITY_EDITOR
-            if (hudFrameTex == null)
-            {
-                hudFrameTex = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Sprites/Sliced/Buttons/UI_Frame.png");
-            }
-#endif
         }
 
         private void OnEnable()
@@ -71,6 +65,7 @@ namespace RhythmGame
         private void Update()
         {
             UpdateJudgementAnimation();
+            comboPulseScale = Mathf.Lerp(comboPulseScale, 1.0f, Time.deltaTime * 12f);
         }
 
         private void HandleScoreUpdated(int totalScore, int addedPoints)
@@ -84,6 +79,15 @@ namespace RhythmGame
 
         private void HandleComboUpdated(int currentCombo, int multiplier)
         {
+            if (currentCombo > displayedCombo)
+            {
+                comboPulseScale = 1.38f; // Başarılı vuruşta büyüme (pulse) efekti!
+            }
+            else if (currentCombo == 0 && displayedCombo > 0)
+            {
+                comboPulseScale = 0.85f; // Kombo kaçırılınca hafif küçülme
+            }
+
             displayedCombo = currentCombo;
             displayedMultiplier = multiplier;
 
@@ -188,54 +192,62 @@ namespace RhythmGame
         private void DrawTopRightComboHUD()
         {
             float screenW = Screen.width;
-            float margin = 22f;
-            float boxW = 210f;
-            float boxH = 92f;
+            float marginX = 28f;
+            float marginY = 22f;
+            float boxW = 220f;
+            float boxH = 96f;
 
-            Vector2 pivot = new Vector2(screenW - boxW / 2f - margin, margin + boxH / 2f);
+            Vector2 pivot = new Vector2(screenW - boxW * 0.5f - marginX, marginY + boxH * 0.5f);
 
             Matrix4x4 oldMatrix = GUI.matrix;
-            GUIUtility.RotateAroundPivot(-5f, pivot);
+            // Çapraz açı (-9 derece) ve her vuruşta büyüyüp küçülen canlı animasyon
+            GUIUtility.RotateAroundPivot(-9f, pivot);
+            GUIUtility.ScaleAroundPivot(Vector2.one * comboPulseScale, pivot);
 
-            Rect hudRect = new Rect(screenW - boxW - margin, margin, boxW, boxH);
+            Rect hudRect = new Rect(screenW - boxW - marginX, marginY, boxW, boxH);
 
-            if (hudFrameTex != null)
+            // 1. Çarpan (x1 .. x5)
+            if (displayedMultiplier > 1)
             {
-                GUI.color = new Color(1f, 1f, 1f, 0.92f);
-                GUI.DrawTexture(new Rect(hudRect.x - 8, hudRect.y - 6, hudRect.width + 16, hudRect.height + 12), hudFrameTex, ScaleMode.StretchToFill);
+                GUIStyle multStyle = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 32,
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.UpperRight
+                };
+                Color mCol = displayedMultiplier >= 4 ? colorPerfect : (displayedMultiplier >= 2 ? colorGreat : Color.white);
+                DrawTextWithShadow(new Rect(hudRect.x, hudRect.y - 4f, hudRect.width, 36f), $"x{displayedMultiplier}", multStyle, mCol);
             }
 
-            // Çarpan (x1 .. x5)
-            GUIStyle multStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 30,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleRight
-            };
-            multStyle.normal.textColor = displayedMultiplier >= 4 ? colorPerfect : (displayedMultiplier >= 2 ? colorGreat : Color.white);
-            GUI.Label(new Rect(hudRect.x, hudRect.y, hudRect.width - 10, 34), $"x{displayedMultiplier}", multStyle);
-
-            // Kombo ("124 COMBO")
+            // 2. Kombo Sayacı ("124 COMBO" veya "0 COMBO")
             GUIStyle comboStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 22,
+                fontSize = 32,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleRight
             };
-            comboStyle.normal.textColor = displayedCombo > 0 ? colorGreat : new Color(0.6f, 0.7f, 0.9f, 0.8f);
-            GUI.Label(new Rect(hudRect.x, hudRect.y + 34, hudRect.width - 10, 28), $"{displayedCombo} COMBO", comboStyle);
+            Color cCol = displayedCombo > 0 ? (displayedMultiplier >= 3 ? colorPerfect : colorGreat) : new Color(0.6f, 0.7f, 0.9f, 0.75f);
+            DrawTextWithShadow(new Rect(hudRect.x, hudRect.y + 28f, hudRect.width, 36f), $"{displayedCombo} COMBO", comboStyle, cCol);
 
-            // Skor
+            // 3. Skor Göstergesi
             GUIStyle scoreStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 15,
+                fontSize = 17,
                 fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleRight
+                alignment = TextAnchor.LowerRight
             };
-            scoreStyle.normal.textColor = Color.white;
-            GUI.Label(new Rect(hudRect.x, hudRect.y + 62, hudRect.width - 10, 22), $"SCORE: {displayedScore:N0}", scoreStyle);
+            DrawTextWithShadow(new Rect(hudRect.x, hudRect.y + 64f, hudRect.width, 26f), $"SCORE: {displayedScore:N0}", scoreStyle, new Color(0.92f, 0.95f, 1f, 0.95f));
 
             GUI.matrix = oldMatrix;
+        }
+
+        private void DrawTextWithShadow(Rect rect, string text, GUIStyle style, Color textColor)
+        {
+            GUIStyle shadowStyle = new GUIStyle(style);
+            shadowStyle.normal.textColor = new Color(0.02f, 0.01f, 0.06f, 0.9f);
+            GUI.Label(new Rect(rect.x + 2, rect.y + 2, rect.width, rect.height), text, shadowStyle);
+            style.normal.textColor = textColor;
+            GUI.Label(rect, text, style);
         }
 
         private void DrawJudgementFeedback()

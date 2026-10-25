@@ -353,14 +353,14 @@ namespace RhythmGame
 
         private void CheckAutoMiss()
         {
-            if (State != NoteState.Approaching) return;
+            if (State != NoteState.Approaching || Conductor.Instance == null) return;
 
             float currentBeat = Conductor.Instance.SongPositionInBeats;
             float overdue = currentBeat - Data.targetBeat;
 
             if (overdue > missThresholdInBeats)
             {
-                MarkMissed();
+                MarkMissed(true);
             }
         }
 
@@ -390,7 +390,7 @@ namespace RhythmGame
             }
             else
             {
-                MarkMissed();
+                MarkMissed(false);
             }
         }
 
@@ -406,9 +406,14 @@ namespace RhythmGame
             Recycle();
         }
 
-        public void MarkMissed()
+        public void MarkMissed(bool notifyHitDetector = true)
         {
+            if (State == NoteState.Missed || State == NoteState.Completed) return;
             State = NoteState.Missed;
+            if (notifyHitDetector && HitDetector.Instance != null)
+            {
+                HitDetector.Instance.NotifyNoteAutoMissed(this);
+            }
             Recycle();
         }
 

@@ -49,6 +49,7 @@ namespace RhythmGame
         public int TotalScore { get; private set; }
 
         private NoteObject[] activeHoldNotes = new NoteObject[4];
+        private float[] lastEmptyMissTime = new float[4];
 
         private void Awake()
         {
@@ -79,9 +80,16 @@ namespace RhythmGame
 
         #region Vuruş Değerlendirme (Key Down)
 
+        public void NotifyNoteAutoMissed(NoteObject note)
+        {
+            if (note == null || Conductor.Instance == null || !Conductor.Instance.IsPlaying) return;
+            RegisterMiss(note.Data.laneIndex, note.Data.noteType, 0f, false);
+        }
+
         private void HandleLaneDown(int laneIndex)
         {
             if (Conductor.Instance == null || !Conductor.Instance.IsPlaying || LaneController.Instance == null) return;
+            if (laneIndex < 0 || laneIndex >= 4) return;
 
             float currentSongTimeSec = Conductor.Instance.SongPositionInSeconds;
             float currentBeat = Conductor.Instance.SongPositionInBeats;
@@ -89,7 +97,16 @@ namespace RhythmGame
 
             // Şeritte vurulmaya en uygun notayı bul
             NoteObject candidate = LaneController.Instance.GetEarliestHittableNote(laneIndex, currentBeat);
-            if (candidate == null) return;
+            if (candidate == null)
+            {
+                // Nota gelmedi ama tuşa bastı -> MISS ve Kombo Sıfırlama!
+                if (Time.time - lastEmptyMissTime[laneIndex] > 0.18f)
+                {
+                    lastEmptyMissTime[laneIndex] = Time.time;
+                    RegisterMiss(laneIndex, NoteType.Tap, 0f, false);
+                }
+                return;
+            }
 
             float targetTimeSec = candidate.Data.targetBeat * secondsPerBeat;
             float diffMs = (currentSongTimeSec - targetTimeSec) * 1000f;
@@ -110,6 +127,15 @@ namespace RhythmGame
                     candidate.StartHold();
                     activeHoldNotes[laneIndex] = candidate;
                     RegisterHit(laneIndex, NoteType.Hold, accuracy, diffMs, false);
+                }
+            }
+            else if (diffMs < -hitWindowMaxMs)
+            {
+                // Çok erken basıldı (ıskalandı) -> MISS ve Kombo Sıfırlama!
+                if (Time.time - lastEmptyMissTime[laneIndex] > 0.18f)
+                {
+                    lastEmptyMissTime[laneIndex] = Time.time;
+                    RegisterMiss(laneIndex, candidate.Data.noteType, diffMs, false);
                 }
             }
         }
