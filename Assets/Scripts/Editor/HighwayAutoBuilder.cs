@@ -125,17 +125,6 @@ namespace RhythmGame.Editor
                 collider.isTrigger = true;
                 collider.size = new Vector2(1.2f, 0.8f);
 
-                // SpriteRenderer ataması
-                Sprite padSprite = AssetDatabase.LoadAssetAtPath<Sprite>(unpressedPaths[i]);
-                if (padSprite != null)
-                {
-                    SpriteRenderer sr = hitZoneObj.AddComponent<SpriteRenderer>();
-                    sr.sprite = padSprite;
-                    sr.sortingOrder = 5;
-                    Shader unlit = Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default") ?? Shader.Find("Sprites/Default");
-                    sr.material = new Material(unlit);
-                }
-
                 // Serialized Properties eşitle
                 SerializedProperty laneElement = lanesProp.GetArrayElementAtIndex(i);
                 laneElement.FindPropertyRelative("laneIndex").intValue = i;

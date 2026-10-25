@@ -61,7 +61,7 @@ namespace RhythmGame
             {
                 if (go == null) continue;
                 string n = go.name;
-                if (n.StartsWith("Divider_") || n == "HitLine" || n == "TrackGround" || n == "KeyLabel" || n == "ProceduralPixelBurst")
+                if (n.StartsWith("Divider_") || n == "HitLine" || n == "TrackGround" || n == "KeyLabel" || n == "ProceduralPixelBurst" || (go.transform.parent == null && n.StartsWith("HitPad_")))
                 {
                     if (Application.isPlaying) Destroy(go);
                     else DestroyImmediate(go);
@@ -170,6 +170,28 @@ namespace RhythmGame
                 sr.sortingOrder = 5;
 
                 padRenderers[i] = sr;
+
+                // Klavye tuş göstergesi ([ A ], [ S ], [ K ], [ L ])
+                GameObject labelObj = new GameObject($"KeyLabel_{i}");
+                labelObj.transform.SetParent(padObj.transform);
+                labelObj.transform.localPosition = new Vector3(0f, -0.66f, -0.05f);
+                labelObj.transform.localScale = Vector3.one * 0.13f;
+
+                TextMesh tm = labelObj.AddComponent<TextMesh>();
+                string[] keyNames = new string[] { "[ A ]", "[ S ]", "[ K ]", "[ L ]" };
+                Color[] keyColors = new Color[]
+                {
+                    new Color(1f, 0.25f, 0.65f), // Neon Pink (A)
+                    new Color(0f, 0.95f, 1f),    // Neon Cyan (S)
+                    new Color(1f, 0.35f, 0.8f),  // Neon Magenta (K)
+                    new Color(0.75f, 0.4f, 1f)   // Neon Purple (L)
+                };
+                tm.text = keyNames[i];
+                tm.fontSize = 46;
+                tm.fontStyle = FontStyle.Bold;
+                tm.alignment = TextAlignment.Center;
+                tm.anchor = TextAnchor.MiddleCenter;
+                tm.color = keyColors[i];
             }
         }
 
