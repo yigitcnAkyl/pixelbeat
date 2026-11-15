@@ -13,11 +13,11 @@ Geliştirici: Yiğitcan (Türkçe konuş, kısa ve pratik ol).
 - Büyük ya da geri alınması zor değişikliklerden önce plan sun, onay bekle.
 - Unity Editor'e erişim UnityMCP sunucusu üzerinden (sahne, obje, component, console).
 - Değişiklikleri küçük adımlarla yap.
-- **Git commit:** Bir görev/adım bitip Unity Console'da derleme hatası olmadığında, sormadan commit at.
-  Commit mesajı Türkçe ve açıklayıcı olsun (ör. "Adım 1: Conductor ve metronom eklendi").
-  Büyük bir değişikliğe başlamadan önce commit edilmemiş değişiklik varsa önce onları commit et.
-  Push yapma.
+- **Git commit + push:** Bir görev/adım bitip Unity Console'da derleme hatası olmadığında, sormadan commit at ve hemen `git push` ile GitHub'a (origin/main) gönder.
+  Commit mesajı Türkçe ve açıklayıcı olsun (ör. "Adım 2: Tap notalar eklendi").
+  Büyük bir değişikliğe başlamadan önce commit edilmemiş değişiklik varsa önce onları commit + push et.
   Commit mesajlarına "Co-Authored-By", "Generated with Claude" gibi Claude imzası/satırı EKLEME; commit'ler sadece kullanıcının adına olsun.
+  Force push (`--force`, `-f`, `--force-with-lease`) ve geçmişi yeniden yazma sadece kullanıcı açıkça isterse.
 - Script değiştirdikten sonra Unity Console'da derleme hatası var mı kontrol et.
 - `Library/`, `Temp/`, `Logs/`, `UserSettings/` klasörlerine ve `.meta` dosyalarına elle dokunma.
 - `.csproj` / `.sln` dosyaları Unity tarafından üretilir, düzenleme.
