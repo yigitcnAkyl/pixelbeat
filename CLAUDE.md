@@ -5,13 +5,18 @@ Geliştirici: Yiğitcan (Türkçe konuş, kısa ve pratik ol).
 
 ## Oyun tasarımı
 - Oyunun tüm tasarım kararları `GDD.md` dosyasında. Her göreve başlamadan önce GDD.md'nin ilgili bölümünü oku.
+- Oyun tasarımıyla ilgili belirsiz bir konu varsa (GDD'de yazmıyorsa) tahmin etme, kullanıcıya sor.
 - GDD ile çelişen bir şey yapman gerekirse önce sor; karar değişirse GDD.md'yi de güncelle.
 - Bir yol haritası adımını bitirince ne yaptığını ve Unity'de nasıl test edileceğini kısaca yaz.
 
 ## Çalışma kuralları
 - Büyük ya da geri alınması zor değişikliklerden önce plan sun, onay bekle.
 - Unity Editor'e erişim UnityMCP sunucusu üzerinden (sahne, obje, component, console).
-- Değişiklikleri küçük adımlarla yap; her adımdan sonra kullanıcı test edip commit atacak.
+- Değişiklikleri küçük adımlarla yap.
+- **Git commit:** Bir görev/adım bitip Unity Console'da derleme hatası olmadığında, sormadan commit at.
+  Commit mesajı Türkçe ve açıklayıcı olsun (ör. "Adım 1: Conductor ve metronom eklendi").
+  Büyük bir değişikliğe başlamadan önce commit edilmemiş değişiklik varsa önce onları commit et.
+  Push yapma (uzak depo yok).
 - Script değiştirdikten sonra Unity Console'da derleme hatası var mı kontrol et.
 - `Library/`, `Temp/`, `Logs/`, `UserSettings/` klasörlerine ve `.meta` dosyalarına elle dokunma.
 - `.csproj` / `.sln` dosyaları Unity tarafından üretilir, düzenleme.
