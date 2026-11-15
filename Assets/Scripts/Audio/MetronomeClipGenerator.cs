@@ -15,7 +15,8 @@ namespace PixelBeat.Audio
         public static AudioClip Create(float bpm, int beats, int sampleRate, int beatsPerBar = 4)
         {
             double secPerBeat = 60.0 / bpm;
-            int totalSamples = (int)Math.Ceiling(beats * secPerBeat * sampleRate);
+            // Round: döngüde çalan klipte kayan nokta hatasından fazladan 1 örnek eklenip beat'ler kaymasın.
+            int totalSamples = (int)Math.Round(beats * secPerBeat * sampleRate);
             int clickSamples = Mathf.CeilToInt(ClickDurationSec * sampleRate);
             var data = new float[totalSamples];
 

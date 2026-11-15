@@ -85,7 +85,10 @@ Prototip: **1 şarkı, sadece oynanış.** Menü, şarkı seçimi, kayıt yok.
 
 1. **Temel:** Pixel Perfect kamera, Conductor, her beat'te yanıp sönen test karesi (senkron doğrulama). ✅
 2. **Tap notalar:** 4 şerit, elle yazılmış küçük test JSON'u, giriş, değerlendirme. ✅
-3. **Mobil'e geçiş:** Dikey yerleşim (180 px genişlik), dokunmatik giriş (multi-touch), Android build ayarları, telefonda test, basit offset kalibrasyon ekranı (tempoya dokunarak gecikme ölçme).
+3. **Mobil'e geçiş:** Dikey yerleşim (180 px genişlik), dokunmatik giriş (multi-touch), Android build ayarları, telefonda test, basit offset kalibrasyon ekranı (tempoya dokunarak gecikme ölçme). ✅
+   - Kalibrasyon: 90 BPM metronom (sadece ses), 4 ısınma + 16 ölçülen dokunuş, uçlardan 2'şer atılmış ortalama. Fark penceresi geç tarafa asimetrik (−¼ … +¾ beat).
+   - Offset sadece gerçek cihaz build'inde PlayerPrefs'e kaydedilir; Editor / Unity Remote'ta sonuç sadece gösterilir.
+   - Üst köşelerde geçici butonlar: CAL (kalibrasyon), R (baştan başlat). Gerçek pause gelene kadar uygulama arka plandan dönünce şarkı baştan başlar.
 4. **Hold notalar:** Basış + bırakış değerlendirmesi, kırılma (dokunmatikte parmak kaldırma/kayma dahil).
 5. **Skor / combo / can:** Başarısızlık ve şarkı sonu sonuç yazısı.
 6. **Otomatik beatmap üretici:** Editor aracı.

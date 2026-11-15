@@ -16,6 +16,8 @@ namespace PixelBeat.Core
         /// <summary>dspTime donarsa (ör. pencere odağı kaybı) en fazla bu kadar ileri tahmin yapılır.</summary>
         private const double MaxExtrapolationSec = 0.1;
 
+        public const string UserOffsetPrefsKey = "userOffsetMs";
+
         [Header("Şarkı (beatmap'ten gelir)")]
         [SerializeField, Min(1f)] private float bpm = 120f;
 
@@ -23,7 +25,8 @@ namespace PixelBeat.Core
         [SerializeField] private float songOffsetSec = 0f;
 
         [Header("Oyuncu ayarı")]
-        [Tooltip("Ses/ekran/klavye gecikmesi telafisi (ms). Pozitif = ses geç duyuluyor, görüntü ve değerlendirme daha geç yapılır.")]
+        [Tooltip("Ses/ekran/dokunma gecikmesi telafisi (ms). Pozitif = ses geç duyuluyor, görüntü ve değerlendirme daha geç yapılır. " +
+                 "Gerçek cihazda PlayerPrefs'ten okunur (kalibrasyon ekranı yazar).")]
         [SerializeField] private float userOffsetMs = 0f;
 
         [Header("Başlatma")]
@@ -62,7 +65,31 @@ namespace PixelBeat.Core
         /// <summary>Ham (yumuşatılmamış) dspTime'dan şarkı pozisyonu. Hata ayıklama için.</summary>
         public double RawSongPositionSec => isPlaying ? ToSongTime(AudioSettings.dspTime) : 0.0;
 
-        private double ToSongTime(double dsp) => dsp - dspSongStart - songOffsetSec - userOffsetMs / 1000.0;
+        public float UserOffsetMs => userOffsetMs;
+
+        /// <summary>
+        /// Kalibrasyon sadece gerçek cihaz build'inde kaydedilir. Editor / Unity Remote'ta ölçülen değer
+        /// Remote'un kendi gecikmesini içerdiği için kaydedilmez.
+        /// </summary>
+        public static bool CanPersistUserOffset => !Application.isEditor;
+
+        private double ToSongTime(double dsp) => SongTimeFromDsp(dsp, dspSongStart, songOffsetSec, userOffsetMs);
+
+        /// <summary>
+        /// dspTime → şarkı zamanı. userOffsetMs pozitifse şarkı zamanı geride kalır: notalar ve değerlendirme
+        /// o kadar geç olur (ses geç duyulan cihazı telafi eder).
+        /// </summary>
+        public static double SongTimeFromDsp(double dsp, double dspSongStart, double songOffsetSec, double userOffsetMs) =>
+            dsp - dspSongStart - songOffsetSec - userOffsetMs / 1000.0;
+
+        /// <summary>Kullanıcı offset'ini değiştirir. persist = true ise (ve gerçek cihazdaysa) PlayerPrefs'e yazar.</summary>
+        public void SetUserOffsetMs(float ms, bool persist)
+        {
+            userOffsetMs = ms;
+            if (!persist || !CanPersistUserOffset) return;
+            PlayerPrefs.SetFloat(UserOffsetPrefsKey, ms);
+            PlayerPrefs.Save();
+        }
 
         /// <summary>
         /// realtimeSinceStartup tabanındaki bir anı (ör. input event zaman damgası) şarkı zamanına çevirir.
@@ -92,13 +119,17 @@ namespace PixelBeat.Core
         {
             if (audioSource == null) audioSource = GetComponent<AudioSource>();
             audioSource.playOnAwake = false;
+            if (CanPersistUserOffset && PlayerPrefs.HasKey(UserOffsetPrefsKey))
+                userOffsetMs = PlayerPrefs.GetFloat(UserOffsetPrefsKey);
             ResetSmoothing();
         }
 
-        public void Play(AudioClip clip)
+        /// <param name="loop">Kalibrasyon metronomu için. Klip tam sayı beat uzunluğunda olmalı.</param>
+        public void Play(AudioClip clip, bool loop = false)
         {
             Stop();
             audioSource.clip = clip;
+            audioSource.loop = loop;
             dspSongStart = AudioSettings.dspTime + startDelaySec;
             audioSource.PlayScheduled(dspSongStart);
             ResetSmoothing();

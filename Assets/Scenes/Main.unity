@@ -172,7 +172,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PixelBeat.UI.JudgementDisplay
   conductor: {fileID: 364336860}
   judgementSystem: {fileID: 275090369}
-  yPx: -36
+  yPx: 0
   displaySec: 0.4
   perfectColor: {r: 0.2, g: 1, b: 1, a: 1}
   greatColor: {r: 0.4, g: 1, b: 0.4, a: 1}
@@ -214,13 +214,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PixelBeat.Gameplay.Playfield
   conductor: {fileID: 364336860}
   laneInput: {fileID: 275090370}
+  screenLayout: {fileID: 519420034}
   pixelSprite: {fileID: 21300000, guid: 3470f2bc24394294f99f2ecd976a5545, type: 3}
-  laneWidthPx: 20
-  hitLineYPx: -60
-  spawnYPx: 94
-  despawnYPx: -96
-  keyBoxYPx: -86
-  keyBoxHeightPx: 14
+  laneWidthPx: 40
+  hitLineFromBottom: 0.2
+  touchZoneHeight: 0.35
+  keyPadMarginPx: 4
+  backgroundColor: {r: 0.043137256, g: 0.043137256, b: 0.08627451, a: 1}
   panelColor: {r: 0.078431375, g: 0.078431375, b: 0.15686275, a: 1}
   separatorColor: {r: 0.16470589, g: 0.16470589, b: 0.28235295, a: 1}
   hitLineColor: {r: 0.5411765, g: 0.5411765, b: 0.6901961, a: 1}
@@ -258,6 +258,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PixelBeat.Gameplay.LaneInput
   conductor: {fileID: 364336860}
+  playfield: {fileID: 275090368}
+  screenLayout: {fileID: 519420034}
   laneActions:
   - m_Name: Lane 0
     m_Type: 1
@@ -323,6 +325,7 @@ MonoBehaviour:
       m_Action: Lane 3
       m_Flags: 0
     m_Flags: 0
+  simulateTouchWithMouseInEditor: 1
 --- !u!4 &275090371
 Transform:
   m_ObjectHideFlags: 0
@@ -500,6 +503,7 @@ GameObject:
   - component: {fileID: 519420029}
   - component: {fileID: 519420030}
   - component: {fileID: 519420033}
+  - component: {fileID: 519420034}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -639,8 +643,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.2D.Runtime::UnityEngine.Rendering.Universal.PixelPerfectCamera
   m_ComponentVersion: 1
   m_AssetsPPU: 16
-  m_RefResolutionX: 320
-  m_RefResolutionY: 180
+  m_RefResolutionX: 180
+  m_RefResolutionY: 320
   m_CropFrame: 0
   m_GridSnapping: 2
   m_FilterMode: 1
@@ -649,6 +653,18 @@ MonoBehaviour:
   m_CropFrameX: 0
   m_CropFrameY: 0
   m_StretchFill: 0
+--- !u!114 &519420034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fd8f6e7c91d1d54386aefe5bf11a2e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PixelBeat.Core.ScreenLayout
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -733,6 +749,82 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &669285178
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 669285181}
+  - component: {fileID: 669285180}
+  - component: {fileID: 669285179}
+  m_Layer: 0
+  m_Name: UI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &669285179
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 669285178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c54d2a4564e2e3428c0a534311096f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PixelBeat.UI.HudButtons
+  playfield: {fileID: 275090368}
+  screenLayout: {fileID: 519420034}
+  laneInput: {fileID: 275090370}
+  songLoader: {fileID: 275090365}
+  calibration: {fileID: 669285180}
+--- !u!114 &669285180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 669285178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd819d22a63fce3498c9e72a72e0aaee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PixelBeat.UI.CalibrationScreen
+  conductor: {fileID: 364336860}
+  playfield: {fileID: 275090368}
+  screenLayout: {fileID: 519420034}
+  laneInput: {fileID: 275090370}
+  songLoader: {fileID: 275090365}
+  bpm: 90
+  warmupTaps: 4
+  measuredTaps: 16
+  trimEachSide: 2
+  overlayColor: {r: 0.043137256, g: 0.043137256, b: 0.08627451, a: 1}
+  titleColor: {r: 1, g: 0.2509804, b: 0.7529412, a: 1}
+  textColor: {r: 0.5411765, g: 0.5411765, b: 0.6901961, a: 1}
+  valueColor: {r: 0.2, g: 1, b: 1, a: 1}
+  warnColor: {r: 1, g: 0.8156863, b: 0.2509804, a: 1}
+--- !u!4 &669285181
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 669285178}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -741,3 +833,4 @@ SceneRoots:
   - {fileID: 619394802}
   - {fileID: 364336863}
   - {fileID: 275090371}
+  - {fileID: 669285181}
