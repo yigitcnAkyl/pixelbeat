@@ -1,6 +1,6 @@
 # PixelBeat
 
-Pixel art ritim oyunu. Unity 6 (6000.2), 2D URP şablonu.
+Pixel art ritim oyunu, **Android, dikey, dokunmatik**. Unity 6 (6000.2), 2D URP şablonu.
 Geliştirici: Yiğitcan (Türkçe konuş, kısa ve pratik ol).
 
 ## Oyun tasarımı

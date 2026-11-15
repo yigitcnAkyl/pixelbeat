@@ -4,17 +4,19 @@
 
 ## 1. Özet
 - **Tür:** 4 şeritli dikey ritim oyunu (osu!mania / DJMAX tarzı).
-- **Platform:** PC (Windows), klavye.
+- **Platform:** Android telefon, **dikey (portrait)**, dokunmatik. (PC sürümü yok; klavye sadece Unity Editor'de test için.)
 - **Görsel:** Retro arcade / neon pixel art. Koyu arka plan, parlak neon renkler, hafif CRT hissi.
 - **Çekirdek döngü:** Notalar yukarıdan aşağı akar → vuruş çizgisine geldiği anda doğru tuşa bas / basılı tut → değerlendirme + combo + skor.
 
 ## 2. Kontroller
-| Şerit | 0 | 1 | 2 | 3 |
-|---|---|---|---|---|
-| Tuş | S | D | K | L |
-
-- Yeni Input System kullanılır. Tuş atamaları ileride değiştirilebilir olmalı (şimdilik sabit).
-- Pause: Esc (prototipte basit duraklatma yeterli).
+- **Dokunmatik:** Ekranın alt kısmı 4 eşit dikey dokunma bölgesine ayrılır (her şerit = bir bölge).
+  - Bölgeye parmak değdiği an = basış, parmak kalktığı an = bırakış.
+  - **Multi-touch** zorunlu (akorlar ve hold sırasında başka şeride basma). Her parmak ayrı takip edilir (touch id).
+  - Parmak basılıyken başka şeride kayarsa: o şeridin basışı bırakılmış sayılır (hold kırılabilir), yeni şeride basış sayılmaz.
+  - Dokunma bölgesi notanın görsel şeridinden biraz daha geniş/yüksek olabilir (ekranın alt ~%35'i).
+- **Editor testi:** Unity Editor'de S D K L tuşları aynı şeritleri tetikler (sadece test için).
+- Yeni Input System (EnhancedTouch) kullanılır.
+- Pause: ekranın üst köşesinde küçük bir duraklat butonu; uygulama arka plana geçerse otomatik duraklat.
 
 ## 3. Notalar
 - **Tap nota:** Vuruş çizgisine geldiğinde bas.
@@ -65,25 +67,28 @@
   - Çıktı yukarıdaki JSON formatına yazılır; sonra elle düzenlenebilir.
 
 ## 8. Görsel / Teknik
-- **Çözünürlük:** 320×180 referans, Pixel Perfect Camera ile tam sayı büyütme (1080p = 6x, 1440p = 8x, 4K = 12x).
+- **Çözünürlük (dikey):** Genişlik **180 px sabit**, yükseklik telefonun en-boy oranına göre uzar (16:9'da 320, uzun telefonlarda ~360–400). Pixel Perfect Camera ile tam sayı büyütme (1080 px genişlikli telefonda 6x). Önemli öğeler (şeritler, vuruş çizgisi) güvenli alanda kalmalı; çentik/kamera deliği için Screen.safeArea dikkate alınır.
+- **Kare hızı:** Application.targetFrameRate = 60 (destekleyen telefonlarda 120 seçeneği sonra).
 - **Sprite ayarları:** Filter Mode = Point, Compression = None, tüm sprite'larda aynı Pixels Per Unit.
-- **Yerleşim (öneri):** Ortada 4 şerit (her biri ~20 px genişliğinde), altta vuruş çizgisi + tuş göstergeleri (basınca yanar), sağda skor/combo, üstte can barı.
+- **Yerleşim (öneri):** 4 şerit ekran genişliğini neredeyse doldurur (her biri ~40 px), vuruş çizgisi alttan ~%20 yukarıda, altında dokunma göstergeleri (basınca yanar). Üstte can barı ve skor, ortada combo/değerlendirme yazısı.
 - **Geri bildirim:** Vuruşta şerit parlaması, değerlendirme yazısı (PERFECT / GREAT / GOOD / MISS), combo sayacı.
 - Prototipte placeholder (basit renkli kare) sprite'lar yeterli. Gerçek pixel art sonra çizilecek.
 
 ## 9. Ses
 - Telifsiz müzik kullanılacak. BPM bilgisi şarkının kaynağından alınır.
 - Ses dosyaları: `Assets/Audio/Music/`. Müzik için Load Type = Decompress On Load veya Compressed In Memory (gecikme testine göre).
+- **Android ses gecikmesi** PC'den belirgin şekilde yüksek ve telefona göre değişir (onlarca–yüzlerce ms). Project Settings > Audio > DSP Buffer Size = Best latency. Bu yüzden **offset kalibrasyon ekranı prototipe dahil** (bkz. yol haritası). Bluetooth kulaklık gecikmeyi çok artırır; kalibrasyon bunu da telafi etmeli.
 - Vuruş sesi (hitsound) opsiyonel, ayarlardan kapatılabilir.
 
 ## 10. Prototip kapsamı ve yol haritası
 Prototip: **1 şarkı, sadece oynanış.** Menü, şarkı seçimi, kayıt yok.
 
-1. **Temel:** Pixel Perfect kamera (320×180), Conductor, her beat'te yanıp sönen test karesi (senkron doğrulama).
-2. **Tap notalar:** 4 şerit, elle yazılmış küçük test JSON'u, S D K L girişi, değerlendirme.
-3. **Hold notalar:** Basış + bırakış değerlendirmesi, kırılma.
-4. **Skor / combo / can:** Başarısızlık ve şarkı sonu sonuç yazısı.
-5. **Otomatik beatmap üretici:** Editor aracı.
-6. **Neon görünüm:** Placeholder pixel art, efektler, geri bildirim.
+1. **Temel:** Pixel Perfect kamera, Conductor, her beat'te yanıp sönen test karesi (senkron doğrulama). ✅
+2. **Tap notalar:** 4 şerit, elle yazılmış küçük test JSON'u, giriş, değerlendirme. ✅
+3. **Mobil'e geçiş:** Dikey yerleşim (180 px genişlik), dokunmatik giriş (multi-touch), Android build ayarları, telefonda test, basit offset kalibrasyon ekranı (tempoya dokunarak gecikme ölçme).
+4. **Hold notalar:** Basış + bırakış değerlendirmesi, kırılma (dokunmatikte parmak kaldırma/kayma dahil).
+5. **Skor / combo / can:** Başarısızlık ve şarkı sonu sonuç yazısı.
+6. **Otomatik beatmap üretici:** Editor aracı.
+7. **Neon görünüm:** Placeholder pixel art, efektler, geri bildirim.
 
-Sonrası (prototip dışı): ana menü, şarkı seçimi, ayarlar ekranı, offset kalibrasyon ekranı, birden fazla zorluk, skor kaydı.
+Sonrası (prototip dışı): ana menü, şarkı seçimi, ayarlar ekranı, birden fazla zorluk, skor kaydı, Google Play yayını.
