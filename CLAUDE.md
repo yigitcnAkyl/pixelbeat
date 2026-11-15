@@ -36,6 +36,8 @@ Geliştirici: Yiğitcan (Türkçe konuş, kısa ve pratik ol).
 
 ## Ritim zamanlaması (önemli)
 - Zamanlama `AudioSettings.dspTime` ile yapılır, `Time.time` / `Time.deltaTime` ile DEĞİL.
+  İstisna: Conductor, dspTime'ın adımları arasını `Time.unscaledTimeAsDouble` ile enterpole eder; sapma `maxDriftMs`'i aşarsa dspTime'a geri senkronlanır.
+  Input zamanı event zaman damgasından `Conductor.SongTimeAtRealtime` ile şarkı zamanına çevrilir.
 - Müzik `AudioSource.PlayScheduled` ile başlatılır.
 - Tek bir `Conductor` sınıfı: BPM, offset, şarkı pozisyonu (saniye + beat), beat başına saniye.
   Diğer sistemler zamanı sadece Conductor'dan okur.

@@ -1,0 +1,52 @@
+{
+  "title": "Metronom Test",
+  "artist": "PixelBeat",
+  "audioFile": "",
+  "bpm": 120,
+  "offset": 0,
+  "difficulty": "Test",
+  "notes": [
+    { "lane": 0, "beat": 4,    "lengthBeats": 0 },
+    { "lane": 1, "beat": 5,    "lengthBeats": 0 },
+    { "lane": 2, "beat": 6,    "lengthBeats": 0 },
+    { "lane": 3, "beat": 7,    "lengthBeats": 0 },
+
+    { "lane": 0, "beat": 8,    "lengthBeats": 0 },
+    { "lane": 3, "beat": 8,    "lengthBeats": 0 },
+    { "lane": 1, "beat": 9,    "lengthBeats": 0 },
+    { "lane": 2, "beat": 10,   "lengthBeats": 0 },
+    { "lane": 1, "beat": 11,   "lengthBeats": 0 },
+
+    { "lane": 0, "beat": 12,   "lengthBeats": 0 },
+    { "lane": 1, "beat": 12.5, "lengthBeats": 0 },
+    { "lane": 2, "beat": 13,   "lengthBeats": 0 },
+    { "lane": 3, "beat": 13.5, "lengthBeats": 0 },
+    { "lane": 1, "beat": 14,   "lengthBeats": 0 },
+    { "lane": 2, "beat": 14,   "lengthBeats": 0 },
+    { "lane": 0, "beat": 15,   "lengthBeats": 0 },
+
+    { "lane": 3, "beat": 16,   "lengthBeats": 0 },
+    { "lane": 2, "beat": 17,   "lengthBeats": 0 },
+    { "lane": 1, "beat": 18,   "lengthBeats": 0 },
+    { "lane": 0, "beat": 19,   "lengthBeats": 0 },
+
+    { "lane": 0, "beat": 20,   "lengthBeats": 0 },
+    { "lane": 2, "beat": 20,   "lengthBeats": 0 },
+    { "lane": 1, "beat": 21,   "lengthBeats": 0 },
+    { "lane": 3, "beat": 21,   "lengthBeats": 0 },
+    { "lane": 2, "beat": 22,   "lengthBeats": 0 },
+    { "lane": 1, "beat": 22.5, "lengthBeats": 0 },
+    { "lane": 0, "beat": 23,   "lengthBeats": 0 },
+
+    { "lane": 3, "beat": 24,   "lengthBeats": 0 },
+    { "lane": 2, "beat": 24.5, "lengthBeats": 0 },
+    { "lane": 1, "beat": 25,   "lengthBeats": 0 },
+    { "lane": 0, "beat": 25.5, "lengthBeats": 0 },
+    { "lane": 1, "beat": 26,   "lengthBeats": 0 },
+    { "lane": 2, "beat": 26,   "lengthBeats": 0 },
+    { "lane": 3, "beat": 27,   "lengthBeats": 0 },
+
+    { "lane": 0, "beat": 28,   "lengthBeats": 0 },
+    { "lane": 3, "beat": 28,   "lengthBeats": 0 }
+  ]
+}
