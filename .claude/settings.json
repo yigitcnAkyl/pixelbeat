@@ -16,5 +16,10 @@
       "Bash(git push:*)",
       "Bash(rm -rf:*)"
     ]
-  }
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "includeCoAuthoredBy": false
 }

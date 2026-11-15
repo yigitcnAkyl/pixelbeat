@@ -16,7 +16,8 @@ Geliştirici: Yiğitcan (Türkçe konuş, kısa ve pratik ol).
 - **Git commit:** Bir görev/adım bitip Unity Console'da derleme hatası olmadığında, sormadan commit at.
   Commit mesajı Türkçe ve açıklayıcı olsun (ör. "Adım 1: Conductor ve metronom eklendi").
   Büyük bir değişikliğe başlamadan önce commit edilmemiş değişiklik varsa önce onları commit et.
-  Push yapma (uzak depo yok).
+  Push yapma.
+  Commit mesajlarına "Co-Authored-By", "Generated with Claude" gibi Claude imzası/satırı EKLEME; commit'ler sadece kullanıcının adına olsun.
 - Script değiştirdikten sonra Unity Console'da derleme hatası var mı kontrol et.
 - `Library/`, `Temp/`, `Logs/`, `UserSettings/` klasörlerine ve `.meta` dosyalarına elle dokunma.
 - `.csproj` / `.sln` dosyaları Unity tarafından üretilir, düzenleme.
