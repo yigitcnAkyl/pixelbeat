@@ -48,9 +48,12 @@
   Hold'un basış ve bırakışı ayrı ayrı sayılır.
   - Streak'e göre her Perfect'in can kazancı: 0–9 → +2, 10–24 → +3, 25–49 → +4, 50+ → +5.
     Kademe, o Perfect sayıldıktan **sonraki** streak değerine bakar (10. Perfect zaten +3 alır; ekranda kademe rengi değiştiği anda bonus da artar).
-  - **Görünüm:** Sağ üst köşede (safe area içinde, skorun altında), **çapraz** duran bir yazı: sağ üstten sol alta doğru bakıyormuş gibi eğik.
-    Pixel art bozulmasın diye serbest açıyla döndürülmez; harfler/rakamlar **merdiven şeklinde** dizilir: soldan sağa okunurken her karakter, kendi genişliği kadar yukarı kayar → **tam 45°** (yazı sol alttan sağ üste doğru yükselir).
-    İçerik: büyük sayı + küçük "PERFECT" yazısı (ör. `27` / `PERFECT`).
+  - **Görünüm:** Sağ üst köşede (safe area içinde, skorun altında) **eğik/döndürülmüş** bir yazı.
+    Yazı **saat yönünde ~35° döndürülmüş**: soldan sağa okunurken **aşağı iner** (sol üstten sağ alta), harflerin tabanı sol alta bakar.
+    Harflerin kendisi de döndürülmüş olmalı (dik harflerin merdiven dizilimi DEĞİL).
+    Pixel art bozulmasın diye çalışma anında serbest döndürme yapılmaz: "PERFECT" yazısı ve 0–9 rakamları için
+    **önceden döndürülmüş pixel sprite'lar** kullanılır (RotSprite benzeri, yumuşatmasız döndürme ile Editor'de üretilir; ileride elle çizilmiş sprite'larla değiştirilebilir).
+    Sayı (streak) aynı açıyla, "PERFECT"in üstünde ona paralel durur. Açı ve konum Inspector'dan ayarlanabilir.
   - Streak 5'ten itibaren görünür, sıfırlanınca kısa bir "kırılma" animasyonuyla (titreme + sönme) kaybolur.
   - Her yeni kademede (10/25/50) kısa bir parlama/büyüme vurgusu olur ve rengi kademeye göre değişir (ör. camgöbeği → yeşil → sarı → pembe), böylece oyuncu can bonusunun arttığını anlar.
 - **Sonuç:** Şarkı bitince skor, max combo, her sonuçtan kaç tane ve harf derecesi (S/A/B/C/D) gösterilir.
