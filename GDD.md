@@ -42,8 +42,16 @@
 - **Skor:** Maksimum 1.000.000. Her değerlendirme (tap = 1, hold = basış + bırakış = 2) eşit pay alır.
   Perfect %100, Great %70, Good %40, Miss %0.
 - **Combo:** Miss dışındaki her sonuç +1, Miss sıfırlar. Max combo kaydedilir.
-- **Can:** 0–100, 100 ile başlar. Miss −8, Good +0, Great +1, Perfect +2 (en fazla 100).
+- **Can:** 0–100, 100 ile başlar. Miss −6, Good +0, Great +1, Perfect +2 (+ streak bonusu, aşağıda), en fazla 100.
   Can 0 olursa şarkı başarısız olur (müzik durur, "FAILED" gösterilir).
+- **Perfect streak:** Art arda gelen Perfect sayısı (combo'dan ayrı). Great, Good veya Miss streak'i sıfırlar.
+  Hold'un basış ve bırakışı ayrı ayrı sayılır.
+  - Streak'e göre her Perfect'in can kazancı: 0–9 → +2, 10–24 → +3, 25–49 → +4, 50+ → +5.
+  - **Görünüm:** Sağ üst köşede (safe area içinde, skorun altında), **çapraz** duran bir yazı: sağ üstten sol alta doğru bakıyormuş gibi eğik.
+    Pixel art bozulmasın diye serbest açıyla döndürülmez; harfler/rakamlar **merdiven şeklinde** dizilir: soldan sağa okunurken her karakter, kendi genişliği kadar yukarı kayar → **tam 45°** (yazı sol alttan sağ üste doğru yükselir).
+    İçerik: büyük sayı + küçük "PERFECT" yazısı (ör. `27` / `PERFECT`).
+  - Streak 5'ten itibaren görünür, sıfırlanınca kısa bir "kırılma" animasyonuyla (titreme + sönme) kaybolur.
+  - Her yeni kademede (10/25/50) kısa bir parlama/büyüme vurgusu olur ve rengi kademeye göre değişir (ör. camgöbeği → yeşil → sarı → pembe), böylece oyuncu can bonusunun arttığını anlar.
 - **Sonuç:** Şarkı bitince skor, max combo, her sonuçtan kaç tane ve harf derecesi (S/A/B/C/D) gösterilir.
   - Harf derecesi eşikleri: **S ≥ 950.000**, **A ≥ 900.000**, **B ≥ 800.000**, **C ≥ 700.000**, altı **D**. Başarısız olunca derece verilmez.
   - Miss yoksa "FULL COMBO", hepsi Perfect ise "ALL PERFECT" yazısı.

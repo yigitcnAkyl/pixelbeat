@@ -54,3 +54,7 @@ crashlytics-build.properties
 # OS
 .DS_Store
 Thumbs.db
+
+# Telifli test müziği (sadece yerel test, GitHub'a yüklenmez)
+/Assets/Audio/Music/lumiere.mp3
+/Assets/Audio/Music/lumiere.mp3.meta
