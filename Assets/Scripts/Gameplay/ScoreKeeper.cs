@@ -39,6 +39,13 @@ namespace PixelBeat.Gameplay
         public int Health { get; private set; } = MaxHealth;
         public bool IsFailed { get; private set; }
 
+        /// <summary>Art arda Perfect sayısı (combo'dan ayrı). Great / Good / Miss sıfırlar.</summary>
+        public int PerfectStreak { get; private set; }
+        public int MaxPerfectStreak { get; private set; }
+
+        /// <summary>Şimdiki streak'in kademesi (0–3). Can bonusu ve gösterge rengi buna bağlı.</summary>
+        public int StreakTier => StreakTierFor(PerfectStreak);
+
         public bool IsComplete => Judged >= Total;
         public bool IsFullCombo => IsComplete && !IsFailed && counts[(int)Judgement.Miss] == 0;
         public bool IsAllPerfect => IsComplete && !IsFailed && counts[(int)Judgement.Perfect] == Total;
@@ -55,6 +62,8 @@ namespace PixelBeat.Gameplay
             MaxCombo = 0;
             Health = MaxHealth;
             IsFailed = false;
+            PerfectStreak = 0;
+            MaxPerfectStreak = 0;
             points = 0;
             Array.Clear(counts, 0, counts.Length);
         }
@@ -80,7 +89,18 @@ namespace PixelBeat.Gameplay
                 if (Combo > MaxCombo) MaxCombo = Combo;
             }
 
-            Health = Math.Max(0, Math.Min(MaxHealth, Health + HealthDelta(j)));
+            if (j == Judgement.Perfect)
+            {
+                PerfectStreak++;
+                if (PerfectStreak > MaxPerfectStreak) MaxPerfectStreak = PerfectStreak;
+            }
+            else
+            {
+                PerfectStreak = 0;
+            }
+
+            // Perfect'in can kazancı, bu Perfect sayıldıktan sonraki streak'e göre (10. Perfect zaten +3).
+            Health = Math.Max(0, Math.Min(MaxHealth, Health + HealthDelta(j, PerfectStreak)));
             if (Health == 0) IsFailed = true;
             return true;
         }
@@ -96,15 +116,32 @@ namespace PixelBeat.Gameplay
             }
         }
 
-        public static int HealthDelta(Judgement j)
+        public const int MissHealthPenalty = -6;
+
+        /// <summary>Streak kademe başlangıçları: 10 / 25 / 50.</summary>
+        public static readonly int[] StreakTierStarts = { 10, 25, 50 };
+
+        /// <param name="streakAfter">Perfect için: bu Perfect sayıldıktan sonraki streak.</param>
+        public static int HealthDelta(Judgement j, int streakAfter)
         {
             switch (j)
             {
-                case Judgement.Perfect: return 2;
+                case Judgement.Perfect: return PerfectHealthGain(streakAfter);
                 case Judgement.Great: return 1;
                 case Judgement.Good: return 0;
-                default: return -8;
+                default: return MissHealthPenalty;
             }
+        }
+
+        /// <summary>GDD §5: 1–9 → +2, 10–24 → +3, 25–49 → +4, 50+ → +5.</summary>
+        public static int PerfectHealthGain(int streak) => 2 + StreakTierFor(streak);
+
+        public static int StreakTierFor(int streak)
+        {
+            int tier = 0;
+            foreach (int start in StreakTierStarts)
+                if (streak >= start) tier++;
+            return tier;
         }
 
         public static Grade GradeFor(int score)

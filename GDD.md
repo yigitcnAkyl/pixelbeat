@@ -47,6 +47,7 @@
 - **Perfect streak:** Art arda gelen Perfect sayısı (combo'dan ayrı). Great, Good veya Miss streak'i sıfırlar.
   Hold'un basış ve bırakışı ayrı ayrı sayılır.
   - Streak'e göre her Perfect'in can kazancı: 0–9 → +2, 10–24 → +3, 25–49 → +4, 50+ → +5.
+    Kademe, o Perfect sayıldıktan **sonraki** streak değerine bakar (10. Perfect zaten +3 alır; ekranda kademe rengi değiştiği anda bonus da artar).
   - **Görünüm:** Sağ üst köşede (safe area içinde, skorun altında), **çapraz** duran bir yazı: sağ üstten sol alta doğru bakıyormuş gibi eğik.
     Pixel art bozulmasın diye serbest açıyla döndürülmez; harfler/rakamlar **merdiven şeklinde** dizilir: soldan sağa okunurken her karakter, kendi genişliği kadar yukarı kayar → **tam 45°** (yazı sol alttan sağ üste doğru yükselir).
     İçerik: büyük sayı + küçük "PERFECT" yazısı (ör. `27` / `PERFECT`).

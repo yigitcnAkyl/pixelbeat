@@ -789,6 +789,7 @@ GameObject:
   - component: {fileID: 669285179}
   - component: {fileID: 669285183}
   - component: {fileID: 669285182}
+  - component: {fileID: 669285184}
   m_Layer: 0
   m_Name: UI
   m_TagString: Untagged
@@ -904,6 +905,33 @@ MonoBehaviour:
   healthColor: {r: 0.2, g: 1, b: 1, a: 1}
   lowHealthColor: {r: 1, g: 0.2509804, b: 0.3764706, a: 1}
   healthBackColor: {r: 0.13333334, g: 0.13333334, b: 0.22745098, a: 1}
+--- !u!114 &669285184
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 669285178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fb4b4d88c4e1484ba2b3efda07565c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PixelBeat.UI.StreakDisplay
+  gameSession: {fileID: 275090372}
+  screenLayout: {fileID: 519420034}
+  hudButtons: {fileID: 669285179}
+  showFromStreak: 5
+  numberScale: 2
+  marginPx: 4
+  lineGapPx: 3
+  bumpSec: 0.15
+  breakSec: 0.4
+  tierColors:
+  - {r: 0.2, g: 1, b: 1, a: 1}
+  - {r: 0.4, g: 1, b: 0.4, a: 1}
+  - {r: 1, g: 0.8156863, b: 0.2509804, a: 1}
+  - {r: 1, g: 0.2509804, b: 0.7529412, a: 1}
+  flashColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

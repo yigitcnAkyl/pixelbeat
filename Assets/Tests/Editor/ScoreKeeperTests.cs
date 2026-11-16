@@ -135,20 +135,20 @@ namespace PixelBeat.Tests
         {
             var k = Keeper(10);
             k.Add(Judgement.Miss);
-            Assert.AreEqual(92, k.Health);
+            Assert.AreEqual(94, k.Health);
             k.Add(Judgement.Good);
-            Assert.AreEqual(92, k.Health);
+            Assert.AreEqual(94, k.Health);
             k.Add(Judgement.Great);
-            Assert.AreEqual(93, k.Health);
-            k.Add(Judgement.Perfect);
             Assert.AreEqual(95, k.Health);
+            k.Add(Judgement.Perfect);
+            Assert.AreEqual(97, k.Health);
         }
 
         [Test]
-        public void ThirteenMisses_Fail_AndFurtherJudgementsAreIgnored()
+        public void SeventeenMisses_Fail_AndFurtherJudgementsAreIgnored()
         {
             var k = Keeper(100);
-            AddMany(k, Judgement.Miss, 12);
+            AddMany(k, Judgement.Miss, 16);
             Assert.AreEqual(4, k.Health);
             Assert.IsFalse(k.IsFailed);
 
@@ -196,10 +196,113 @@ namespace PixelBeat.Tests
             Assert.AreEqual(0, k.Score);
             Assert.AreEqual(0, k.Combo);
             Assert.AreEqual(0, k.MaxCombo);
+            Assert.AreEqual(0, k.PerfectStreak);
+            Assert.AreEqual(0, k.MaxPerfectStreak);
             Assert.AreEqual(100, k.Health);
             Assert.AreEqual(0, k.Count(Judgement.Miss));
             Assert.IsFalse(k.IsFailed);
             Assert.IsFalse(k.IsComplete);
+        }
+
+        // ---------- Perfect streak ----------
+
+        [Test]
+        public void Streak_CountsPerfects_AndIsSeparateFromCombo()
+        {
+            var k = Keeper(20);
+            AddMany(k, Judgement.Perfect, 3);
+            Assert.AreEqual(3, k.PerfectStreak);
+            Assert.AreEqual(3, k.Combo);
+
+            k.Add(Judgement.Great);
+            Assert.AreEqual(0, k.PerfectStreak, "Great streak'i sıfırlar");
+            Assert.AreEqual(4, k.Combo, "ama combo'yu sıfırlamaz");
+
+            AddMany(k, Judgement.Perfect, 2);
+            k.Add(Judgement.Good);
+            Assert.AreEqual(0, k.PerfectStreak);
+
+            AddMany(k, Judgement.Perfect, 4);
+            k.Add(Judgement.Miss);
+            Assert.AreEqual(0, k.PerfectStreak);
+            Assert.AreEqual(4, k.MaxPerfectStreak);
+        }
+
+        [Test]
+        public void Streak_HoldPressAndReleaseCountSeparately()
+        {
+            var k = Keeper(4);
+            k.Add(Judgement.Perfect); // hold basış
+            k.Add(Judgement.Perfect); // hold bırakış
+            Assert.AreEqual(2, k.PerfectStreak);
+        }
+
+        [TestCase(1, 2)]
+        [TestCase(9, 2)]
+        [TestCase(10, 3)]
+        [TestCase(24, 3)]
+        [TestCase(25, 4)]
+        [TestCase(49, 4)]
+        [TestCase(50, 5)]
+        [TestCase(200, 5)]
+        public void PerfectHealthGain_ByStreakAfterThisPerfect(int streak, int gain)
+        {
+            Assert.AreEqual(gain, ScoreKeeper.PerfectHealthGain(streak));
+        }
+
+        [Test]
+        public void Health_TierBonusIsApplied_FromTheTierStartingPerfect()
+        {
+            var k = Keeper(200);
+            AddMany(k, Judgement.Miss, 15); // can 10, streak 0
+            Assert.AreEqual(10, k.Health);
+
+            AddMany(k, Judgement.Perfect, 9); // 9 × +2
+            Assert.AreEqual(28, k.Health);
+            Assert.AreEqual(0, k.StreakTier);
+
+            k.Add(Judgement.Perfect); // 10. Perfect: +3
+            Assert.AreEqual(31, k.Health);
+            Assert.AreEqual(1, k.StreakTier);
+
+            AddMany(k, Judgement.Perfect, 14); // 11..24: +3
+            Assert.AreEqual(73, k.Health);
+
+            k.Add(Judgement.Perfect); // 25.: +4
+            Assert.AreEqual(77, k.Health);
+            Assert.AreEqual(2, k.StreakTier);
+        }
+
+        [Test]
+        public void Health_BonusResetsWhenStreakBreaks()
+        {
+            var k = Keeper(100);
+            AddMany(k, Judgement.Miss, 10); // can 40
+            AddMany(k, Judgement.Perfect, 10); // 9×2 + 3 = 21 → 61
+            Assert.AreEqual(61, k.Health);
+
+            k.Add(Judgement.Great); // +1, streak 0
+            k.Add(Judgement.Perfect); // streak 1 → +2
+            Assert.AreEqual(64, k.Health);
+        }
+
+        [Test]
+        public void Health_NeverExceedsMax_WithTierBonus()
+        {
+            var k = Keeper(100);
+            AddMany(k, Judgement.Perfect, 60);
+            Assert.AreEqual(ScoreKeeper.MaxHealth, k.Health);
+            Assert.AreEqual(3, k.StreakTier);
+        }
+
+        [Test]
+        public void Streak_FreezesAfterFail()
+        {
+            var k = Keeper(100);
+            AddMany(k, Judgement.Miss, 17);
+            Assert.IsTrue(k.IsFailed);
+            k.Add(Judgement.Perfect);
+            Assert.AreEqual(0, k.PerfectStreak);
         }
 
         // ---------- Derece ----------
