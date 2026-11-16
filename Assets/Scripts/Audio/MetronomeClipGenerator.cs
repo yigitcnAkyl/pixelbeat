@@ -11,6 +11,22 @@ namespace PixelBeat.Audio
         private const float NormalFrequency = 1000f;
         private const float Volume = 0.6f;
 
+        /// <summary>Tek bir tık sesi (planlanarak çalınmak için).</summary>
+        public static AudioClip CreateClick(bool accent, int sampleRate, float volume = Volume)
+        {
+            int clickSamples = Mathf.CeilToInt(ClickDurationSec * sampleRate);
+            var data = new float[clickSamples];
+            float freq = accent ? AccentFrequency : NormalFrequency;
+            for (int i = 0; i < clickSamples; i++)
+            {
+                float t = (float)i / sampleRate;
+                data[i] = Mathf.Sin(2f * Mathf.PI * freq * t) * Mathf.Exp(-t / (ClickDurationSec * 0.25f)) * volume;
+            }
+            var clip = AudioClip.Create(accent ? "Click_Accent" : "Click", clickSamples, 1, sampleRate, false);
+            clip.SetData(data, 0);
+            return clip;
+        }
+
         /// <param name="beatsPerBar">Her ölçünün ilk beat'i vurgulu (daha tiz) çalınır.</param>
         public static AudioClip Create(float bpm, int beats, int sampleRate, int beatsPerBar = 4)
         {

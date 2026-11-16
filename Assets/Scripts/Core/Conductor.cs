@@ -44,6 +44,7 @@ namespace PixelBeat.Core
 
         private double dspSongStart;
         private bool isPlaying;
+        private TempoMap tempoMap;
 
         // Yumuşatma durumu
         private double lastDsp;
@@ -59,8 +60,13 @@ namespace PixelBeat.Core
         /// <summary>Yumuşatılmış şarkı pozisyonu (saniye). Başlangıç gecikmesi sırasında negatiftir.</summary>
         public double SongPositionSec => isPlaying ? ToSongTime(smoothedDsp) : 0.0;
 
-        /// <summary>Yumuşatılmış şarkı pozisyonu (beat).</summary>
-        public double SongPositionBeats => SongPositionSec / SecPerBeat;
+        /// <summary>Yumuşatılmış şarkı pozisyonu (beat). Tempo haritası varsa (değişken tempo) ondan.</summary>
+        public double SongPositionBeats => tempoMap != null ? tempoMap.TimeToBeat(SongPositionSec) : SongPositionSec / SecPerBeat;
+
+        /// <summary>Şarkı zamanı 0'ın (ses dosyasının başı + şarkı offset'i) denk geldiği dspTime. Ek sesleri planlamak için.</summary>
+        public double DspSongStart => dspSongStart + songOffsetSec;
+
+        public TempoMap TempoMap => tempoMap;
 
         /// <summary>Ham (yumuşatılmamış) dspTime'dan şarkı pozisyonu. Hata ayıklama için.</summary>
         public double RawSongPositionSec => isPlaying ? ToSongTime(AudioSettings.dspTime) : 0.0;
@@ -104,10 +110,23 @@ namespace PixelBeat.Core
             return SongPositionSec + sinceUpdate - age;
         }
 
+        /// <summary>Sabit tempo (kalibrasyon metronomu gibi). Tempo haritasını temizler.</summary>
         public void Configure(float newBpm, float newSongOffsetSec)
         {
             bpm = Mathf.Max(1f, newBpm);
             songOffsetSec = newSongOffsetSec;
+            tempoMap = null;
+        }
+
+        /// <summary>
+        /// Beatmap'in tempo haritası. Harita zamanları ses dosyasının başından ölçüldüğü için şarkı offset'i 0 olur;
+        /// BPM ortalama tempoya ayarlanır (SecPerBeat bilgi amaçlı).
+        /// </summary>
+        public void SetTempoMap(TempoMap map)
+        {
+            tempoMap = map;
+            songOffsetSec = 0f;
+            if (map != null) bpm = Mathf.Max(1f, (float)map.AverageBpm);
         }
 
         private void Reset()
@@ -131,7 +150,8 @@ namespace PixelBeat.Core
             audioSource.clip = clip;
             audioSource.loop = loop;
             dspSongStart = AudioSettings.dspTime + startDelaySec;
-            audioSource.PlayScheduled(dspSongStart);
+            // Klip yoksa (ör. sadece planlanmış tıklar) zaman yine dspSongStart'tan akar.
+            if (clip != null) audioSource.PlayScheduled(dspSongStart);
             ResetSmoothing();
             isPlaying = true;
         }

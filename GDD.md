@@ -71,15 +71,22 @@
 
 ## 7. Beatmap
 - **Format:** Düzenlenebilir JSON dosyası (`Assets/Data/Beatmaps/<şarkı>.json`).
-  - Üst bilgi: şarkı adı, sanatçı, ses dosyası, BPM, offset (sn), zorluk.
-  - Notalar: `lane` (0–3), `beat` (başlangıç, beat cinsinden), `lengthBeats` (0 = tap, >0 = hold).
-- Beat cinsinden tutulur, böylece BPM ızgarasına oturur ve elle düzeltmek kolaydır.
-- **Otomatik üretici (Editor aracı):** Ses dosyası + BPM (+ offset) verilir →
-  - Onset (vuruş başlangıcı) tespiti yapılır, sonuçlar beat ızgarasına (1/1, 1/2, 1/4) oturtulur.
-  - Uzun süren / sürdürülen enerjiden hold notalar tahmin edilir.
-  - Yoğunluk (zorluk) parametresi: kaç nota üretileceği.
-  - Şerit dağıtımı: aynı şeride çok art arda yığılma, oynanamaz akorlar (aynı anda 3+ tuş) ve hold sırasında aynı şeride nota olmamalı.
-  - Çıktı yukarıdaki JSON formatına yazılır; sonra elle düzenlenebilir.
+  - Üst bilgi: şarkı adı, sanatçı, ses dosyası (bilgi), BPM, offset (sn), zorluk.
+  - **Tempo:** isteğe bağlı `beatTimes` = her tam beat'in ses dosyasındaki zamanı (sn, kesin artan) → **değişken tempo**.
+    Doluysa beat → zaman komşu iki beat arasında doğrusal hesaplanır (listenin önü/sonu ilk/son aralıkla devam eder); `bpm` ortalama tempodur (bilgi), `offset` kullanılmaz.
+    Boşsa sabit tempo: zaman = `offset` + beat × 60/`bpm` (elle yazılan haritalar).
+  - Notalar: `lane` (0–3), `beat` (başlangıç, beat cinsinden, kesirli olabilir: 12.5 = 1/2, 12.25 = 1/4), `lengthBeats` (0 = tap, >0 = hold).
+- Beat cinsinden tutulur, böylece tempo ızgarasına oturur ve elle düzeltmek kolaydır.
+- Çalınacak beatmap ve şarkı (AudioClip) `SongLoader`'da Inspector'dan seçilir. Şarkı yoksa beatmap'in beat'lerinde metronom tıkı çalar; "beat tıkı ekle" seçeneği şarkının üstüne tık ekler (beat takibini kulakla kontrol için).
+- **Otomatik üretici (Editor aracı, *PixelBeat > Beatmap Üretici*):** Ses dosyası + zorluk (1–10) + isteğe bağlı BPM ipucu →
+  - Sabit BPM varsayılmaz: spektral akıdan onset gücü → otokorelasyonla tempo (ipucu yarım/iki kat karışıklığını önler) → ~8 sn pencerelerde yerel tempo → dinamik programlamayla beat takibi. Sonuç `beatTimes`'a yazılır.
+  - Onset tespiti yapılır, sonuçlar beat ızgarasına (1/1, 1/2, 1/4) oturtulur. Kolay: 1/1 + güçlü 1/2; orta: 1/2; zor (8+): 1/4.
+  - Uzun süren / sürdürülen enerjiden hold notalar tahmin edilir (baskın bandın enerjisi tepe değerin yarısının üstünde kaldığı ve araya yeni güçlü onset girmediği süre; 1–4 beat).
+  - Yoğunluk (zorluk) parametresi: beat başına ~0.4 (1) … 2.2 (10) nota; akor ve hold oranı zorlukla artar.
+  - Şerit dağıtımı: aynı şeride çok art arda yığılma (en fazla 2), oynanamaz akorlar (aynı anda 3+ tuş) ve hold sırasında (bitişi dahil) aynı şeride nota olmamalı.
+  - **Mobil, iki başparmak:** şerit 0–1 sol el, 2–3 sağ el; aynı anda en fazla 2 parmak; akor el başına bir nota; hold sürerken akor ve ikinci hold yok, diğer notalar serbest elde; aynı el art arda en az 150 ms.
+  - Kısıtlar içinde şerit ses perdesine göre seçilir (bas → sol, tiz → sağ). Üretim belirleyicidir (aynı girdi → aynı harita).
+  - Çıktı yukarıdaki JSON formatına yazılır, oynanabilirlik denetiminden geçer; sonra elle düzenlenebilir.
 
 ## 8. Görsel / Teknik
 - **Çözünürlük (dikey):** Genişlik **180 px sabit**, yükseklik telefonun en-boy oranına göre uzar (16:9'da 320, uzun telefonlarda ~360–400). Pixel Perfect Camera ile tam sayı büyütme (1080 px genişlikli telefonda 6x). Önemli öğeler (şeritler, vuruş çizgisi) güvenli alanda kalmalı; çentik/kamera deliği için Screen.safeArea dikkate alınır.
@@ -109,7 +116,8 @@ Prototip: **1 şarkı, sadece oynanış.** Menü, şarkı seçimi, kayıt yok.
    - Bırakış sonucu basış yazısının bir satır üstünde ayrı gösterilir. Hold tutulurken şerit parlar.
    - Beatmap yüklenirken aynı şeritte hold sürerken (bitişi dahil) başlayan nota uyarı verir.
 5. **Skor / combo / can:** Başarısızlık ve şarkı sonu sonuç yazısı. ✅
-6. **Otomatik beatmap üretici:** Editor aracı.
+6. **Otomatik beatmap üretici:** Editor aracı. ✅
+   - Test şarkısı: `lumiere.mp3` (yerel, gitignore'da) → `lumiere.json` (zorluk 6, ipucu 161 BPM).
 7. **Neon görünüm:** Placeholder pixel art, efektler, geri bildirim.
 
 Sonrası (prototip dışı): ana menü, şarkı seçimi, ayarlar ekranı, birden fazla zorluk, skor kaydı, Google Play yayını.

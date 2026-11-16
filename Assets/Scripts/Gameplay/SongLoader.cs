@@ -6,20 +6,27 @@ using UnityEngine.InputSystem;
 namespace PixelBeat.Gameplay
 {
     /// <summary>
-    /// Beatmap JSON'unu yükler, Conductor'ı yapılandırır, sistemlere chart'ı verir ve şarkıyı başlatır.
-    /// audioFile boşsa test metronomu üretilir. R / ekrandaki R butonu: baştan başlat.
+    /// Beatmap JSON'unu yükler, Conductor'ı tempo haritasıyla yapılandırır, sistemlere chart'ı verir ve şarkıyı başlatır.
+    /// Çalınacak beatmap ve şarkı Inspector'dan seçilir. Şarkı yoksa beatmap'in beat'lerinde metronom tıkı çalar.
+    /// R / ekrandaki R butonu: baştan başlat.
     /// </summary>
     public class SongLoader : MonoBehaviour
     {
         [SerializeField] private Conductor conductor;
-        [SerializeField] private TextAsset beatmapJson;
         [SerializeField] private JudgementSystem judgementSystem;
         [SerializeField] private NoteSpawner noteSpawner;
 
-        [Tooltip("Son notadan sonra metronomun kaç beat daha çalacağı.")]
+        [Header("Çalınacak şarkı")]
+        [SerializeField] private TextAsset beatmapJson;
+        [Tooltip("Şarkı. Boşsa beatmap'in beat'lerinde tık çalan metronom kullanılır.")]
+        [SerializeField] private AudioClip musicClip;
+        [Tooltip("Şarkının üstüne beatmap'in beat'lerinde tık çal (beat takibini kulakla kontrol etmek için).")]
+        [SerializeField] private bool addClickTrack;
+        [SerializeField] private BeatClickTrack clickTrack;
+
+        [Tooltip("Şarkı yokken son notadan sonra metronomun kaç beat daha çalacağı.")]
         [SerializeField, Min(0)] private int tailBeats = 8;
 
-        private AudioClip generatedClip;
         private bool suspended;
 
         public Beatmap CurrentBeatmap { get; private set; }
@@ -32,6 +39,15 @@ namespace PixelBeat.Gameplay
 
         /// <summary>Kalibrasyon ekranı açıkken true: oynanış durur, Conductor başkasınındır.</summary>
         public bool IsSuspended => suspended;
+
+        private void Awake()
+        {
+            if (clickTrack == null)
+            {
+                clickTrack = gameObject.AddComponent<BeatClickTrack>();
+                clickTrack.Configure(conductor);
+            }
+        }
 
         private void Start()
         {
@@ -58,6 +74,7 @@ namespace PixelBeat.Gameplay
         public void Suspend()
         {
             suspended = true;
+            clickTrack.Stop();
             conductor.Stop();
             judgementSystem.Load(null);
             noteSpawner.Load(null);
@@ -74,31 +91,36 @@ namespace PixelBeat.Gameplay
             }
 
             CurrentBeatmap = Beatmap.FromJson(beatmapJson.text);
-            conductor.Configure(CurrentBeatmap.bpm, CurrentBeatmap.offset);
+            var tempo = CurrentBeatmap.CreateTempoMap();
+            conductor.SetTempoMap(tempo);
 
             var chart = NoteChart.FromBeatmap(CurrentBeatmap);
             judgementSystem.Load(chart);
             noteSpawner.Load(chart);
 
-            if (!string.IsNullOrEmpty(CurrentBeatmap.audioFile))
-                Debug.LogWarning($"[SongLoader] Ses dosyası yükleme henüz yok ('{CurrentBeatmap.audioFile}'), metronom çalınıyor.");
+            conductor.Play(musicClip);
 
-            if (generatedClip != null) Destroy(generatedClip);
-            int beats = Mathf.CeilToInt((float)chart.LastBeat) + tailBeats;
-            generatedClip = MetronomeClipGenerator.Create(CurrentBeatmap.bpm, beats, AudioSettings.outputSampleRate);
-            conductor.Play(generatedClip);
+            // Tık: şarkı yoksa metronom olarak, varsa istenirse kontrol için.
+            if (musicClip == null || addClickTrack)
+            {
+                int last = musicClip != null
+                    ? Mathf.FloorToInt((float)tempo.TimeToBeat(musicClip.length))
+                    : Mathf.CeilToInt((float)chart.LastBeat) + tailBeats;
+                clickTrack.Begin(tempo, 0, last);
+            }
+            else
+            {
+                clickTrack.Stop();
+            }
+
             SongStarted?.Invoke(chart);
         }
 
         /// <summary>Müziği ve oynanışı durdurur, notalar yerinde donar (FAILED / sonuç ekranı).</summary>
         public void StopPlayback()
         {
+            clickTrack.Stop();
             conductor.Stop();
-        }
-
-        private void OnDestroy()
-        {
-            if (generatedClip != null) Destroy(generatedClip);
         }
     }
 }

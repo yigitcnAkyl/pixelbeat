@@ -39,13 +39,13 @@ namespace PixelBeat.Gameplay
         /// </summary>
         public double HeldUntilSec { get; set; }
 
-        public ChartNote(int lane, double beat, double lengthBeats, double secPerBeat)
+        public ChartNote(int lane, double beat, double lengthBeats, TempoMap tempo)
         {
             Lane = lane;
             Beat = beat;
             LengthBeats = lengthBeats > 0 ? lengthBeats : 0;
-            TimeSec = beat * secPerBeat;
-            EndTimeSec = (beat + LengthBeats) * secPerBeat;
+            TimeSec = tempo.BeatToTime(beat);
+            EndTimeSec = tempo.BeatToTime(beat + LengthBeats);
             HeldUntilSec = TimeSec;
             State = NoteState.Pending;
         }
@@ -62,6 +62,9 @@ namespace PixelBeat.Gameplay
         public IReadOnlyList<ChartNote> Notes => notes;
         public double LastBeat { get; private set; }
 
+        /// <summary>Haritanın beat ↔ zaman dönüşümü (sabit ya da değişken tempo).</summary>
+        public TempoMap Tempo { get; private set; }
+
         public IReadOnlyList<ChartNote> LaneNotes(int lane) => byLane[lane];
 
         public static NoteChart FromBeatmap(Beatmap map, bool logWarnings = true)
@@ -69,7 +72,8 @@ namespace PixelBeat.Gameplay
             var chart = new NoteChart();
             for (int i = 0; i < LaneCount; i++) chart.byLane[i] = new List<ChartNote>();
 
-            double secPerBeat = 60.0 / map.bpm;
+            var tempo = map.CreateTempoMap();
+            chart.Tempo = tempo;
             foreach (var n in map.notes)
             {
                 if (n.lane < 0 || n.lane >= LaneCount)
@@ -78,7 +82,7 @@ namespace PixelBeat.Gameplay
                     continue;
                 }
 
-                var note = new ChartNote(n.lane, n.beat, n.lengthBeats, secPerBeat);
+                var note = new ChartNote(n.lane, n.beat, n.lengthBeats, tempo);
                 chart.notes.Add(note);
                 chart.byLane[n.lane].Add(note);
                 if (n.beat + note.LengthBeats > chart.LastBeat) chart.LastBeat = n.beat + note.LengthBeats;

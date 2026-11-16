@@ -155,9 +155,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PixelBeat.Gameplay.SongLoader
   conductor: {fileID: 364336860}
-  beatmapJson: {fileID: 4900000, guid: dd9287c7c821a854bbc12f90029415c3, type: 3}
   judgementSystem: {fileID: 275090369}
   noteSpawner: {fileID: 275090367}
+  beatmapJson: {fileID: 4900000, guid: e4ff42c12c337f44184759e25f74982c, type: 3}
+  musicClip: {fileID: 8300000, guid: 74adac10893d2994bb6177bd0de93cce, type: 3}
+  addClickTrack: 0
+  clickTrack: {fileID: 0}
   tailBeats: 8
 --- !u!114 &275090366
 MonoBehaviour:
