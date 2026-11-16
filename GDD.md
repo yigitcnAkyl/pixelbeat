@@ -77,7 +77,7 @@
     Boşsa sabit tempo: zaman = `offset` + beat × 60/`bpm` (elle yazılan haritalar).
   - Notalar: `lane` (0–3), `beat` (başlangıç, beat cinsinden, kesirli olabilir: 12.5 = 1/2, 12.25 = 1/4), `lengthBeats` (0 = tap, >0 = hold).
 - Beat cinsinden tutulur, böylece tempo ızgarasına oturur ve elle düzeltmek kolaydır.
-- Çalınacak beatmap ve şarkı (AudioClip) `SongLoader`'da Inspector'dan seçilir. Şarkı yoksa beatmap'in beat'lerinde metronom tıkı çalar; "beat tıkı ekle" seçeneği şarkının üstüne tık ekler (beat takibini kulakla kontrol için).
+- Çalınacak beatmap ve şarkı (AudioClip) `SongLoader`'da Inspector'dan seçilir: **Zorluk** = Özel (tek beatmap: ritim modu / elle yazılmış) ya da Kolay / Normal / Zor (melodi modu haritaları için üç ayrı alan). Şarkı yoksa beatmap'in beat'lerinde metronom tıkı çalar; "beat tıkı ekle" seçeneği şarkının üstüne tık ekler (beat takibini kulakla kontrol için).
 - **Otomatik üretici (Editor aracı, *PixelBeat > Beatmap Üretici*):** Ses dosyası + zorluk (1–10) + isteğe bağlı BPM ipucu →
   - Sabit BPM varsayılmaz: spektral akıdan onset gücü → otokorelasyonla tempo (ipucu yarım/iki kat karışıklığını önler) → ~8 sn pencerelerde yerel tempo → dinamik programlamayla beat takibi. Sonuç `beatTimes`'a yazılır.
   - Onset tespiti yapılır, sonuçlar beat ızgarasına (1/1, 1/2, 1/4) oturtulur. Kolay: 1/1 + güçlü 1/2; orta: 1/2; zor (8+): 1/4.
@@ -100,6 +100,15 @@ Beat tabanlı üretim notaları ritme oturtur ama melodik şarkılarda "duyduğu
 - **Akor:** Yüksek zorlukta, aynı anda güçlü vurulan birden fazla nota varsa 2'li akor.
 - GDD §7'deki şerit kuralları (yığılma yok, 3+ akor yok, hold sürerken o şeride nota yok, iki parmakla oynanabilir) aynen geçerli.
 - Beat tabanlı üretici "ritim modu" olarak kalır; vuruş çizgisi parlaması için beat zamanları yine şarkıdan çıkarılır.
+- **Uygulama (Beatmap Üretici → Mod: Melodi):** ses + `.mid` → `<ad>_easy|normal|hard.json`. Kesinleşen değerler:
+  - Melodi hattı, sırayla: alt perde sınırı (varsayılan MIDI 48) ve hayalet temizliği (< 60 ms ya da velocity'si çevresindeki ±3 sn'nin medyanının yarısından az) → skyline (60 ms grupta en tiz, zaman = kendi başlangıcı) → tiz nota çalarken (ilk 0.5 sn) altta başlayan eşlik atılır → yerel register: çevredeki (±3 sn) melodi notalarının %65'liğinin 7 yarım sesten fazla altı bas/eşlik sayılır → süsleme (< 110 ms, 150 ms içinde ±2 yarım ses nota geliyor).
+  - **Cümle başları korunur:** önceki melodi notasının bitişinden ≥ 0.5 sn sessizlik sonra gelen nota seyreltmede hep kalır.
+  - Seyreltme 8 sn'lik pencerelerde bütçeyle, önem = velocity + süre + melodik vurgu (yerel zirve, ≥ 5 yarım ses atlama).
+  - Zorluklar: Kolay 1.5 nota/sn, min boşluk 0.30 sn, hold ≥ 0.5 sn · Normal 2.5, 0.20, ≥ 0.4 · Zor 3.5, 0.15, ≥ 0.4 + 2'li akor (en fazla %10, iki nota da güçlü olmalı). Hedef yoğunluk melodi hattının yoğunluğunu aşamaz.
+  - Hold en fazla 2 sn, sonraki notadan en az 0.15 sn önce biter.
+  - Şerit: perde, ±4 sn penceredeki yerel aralığa (%10–%90, en az 7 yarım ses) göre 0–3'e eşlenir; yukarı → sağ/yerinde, aşağı → sol/yerinde, tekrar → aynı/komşu, ≥ 5 yarım ses atlama → en az 2 şerit. Kısıtlar ritim moduyla ortak (`LaneAssigner`).
+  - Nota zamanı = MIDI zamanı + offset; beat ızgarasına oturtulmaz, şarkının beat zamanlarına göre kesirli beat'e çevrilir.
+  - Lumiere (Basic Pitch, 2181 nota → melodi hattı 623): Kolay 323 nota (1.5/sn), Normal 458 (2.1/sn), Zor 594 (2.7/sn, 29 akor). Normal ilk notalar 0.95, 1.31, 2.42 sn.
 - **Sonraki iş — Kayıt modu:** Şarkı çalarken kullanıcı melodiye dokunur, dokunuşlar notaya dönüşür; otomatik haritadaki hatalar böyle düzeltilir.
 
 ## 8. Görsel / Teknik
@@ -157,6 +166,7 @@ Prototip: **1 şarkı, sadece oynanış.** Menü, şarkı seçimi, kayıt yok.
 5. **Skor / combo / can:** Başarısızlık ve şarkı sonu sonuç yazısı. ✅
 6. **Otomatik beatmap üretici:** Editor aracı. ✅
    - Test şarkısı: `lumiere.mp3` (yerel, gitignore'da) → `lumiere.json` (zorluk 6, ipucu 161 BPM).
+   - Melodi modu (§7.1): `lumiere.mp3` + `lumiere_basicpitch.mid` (yerel) → `lumiere_easy/normal/hard.json`; sahnede Normal seçili. ✅
 7. **Neon görünüm:** Placeholder pixel art, efektler, geri bildirim. ✅ (telefonda build/FPS testi bekliyor (Unity Hub tamamen yeniden başlatılınca yapılacak))
 
 Sonrası (prototip dışı): ana menü, şarkı seçimi, ayarlar ekranı, birden fazla zorluk, skor kaydı, Google Play yayını.

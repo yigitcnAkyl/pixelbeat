@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using PixelBeat.Core;
+using PixelBeat.EditorTools.BeatmapGen.Melody;
 using PixelBeat.Gameplay;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -8,11 +9,22 @@ using UnityEngine;
 
 namespace PixelBeat.EditorTools.BeatmapGen
 {
-    /// <summary>PixelBeat > Beatmap Üretici: ses dosyasından GDD §7 formatında (değişken tempolu) beatmap üretir.</summary>
+    /// <summary>
+    /// PixelBeat > Beatmap Üretici: GDD §7 formatında (değişken tempolu) beatmap üretir.
+    /// - Ritim modu: sadece ses dosyasından (onset'ler beat ızgarasına).
+    /// - Melodi modu (GDD §7.1): ses + MIDI; notalar MIDI melodisinden, beat zamanları sesten. Kolay/Normal/Zor ayrı dosyalar.
+    /// </summary>
     public class BeatmapGeneratorWindow : EditorWindow
     {
         private const string OutputFolder = "Assets/Data/Beatmaps";
 
+        private enum Mode
+        {
+            Ritim,
+            Melodi,
+        }
+
+        [SerializeField] private Mode mode = Mode.Melodi;
         [SerializeField] private AudioClip clip;
         [SerializeField] private int difficulty = 6;
         [SerializeField] private float bpmHint;
@@ -20,8 +32,14 @@ namespace PixelBeat.EditorTools.BeatmapGen
         [SerializeField] private string artist = "";
         [SerializeField] private string fileName = "";
 
+        [SerializeField] private Object midiAsset;
+        [SerializeField] private float offsetMs;
+        [SerializeField] private int minPitch = 48;
+        [SerializeField] private bool makeEasy = true, makeNormal = true, makeHard = true;
+
         private string summary = "";
         private string lastPath;
+        private readonly Dictionary<MelodyDifficulty, string> lastMelodyPaths = new Dictionary<MelodyDifficulty, string>();
         private Vector2 scroll;
 
         [MenuItem("PixelBeat/Beatmap Üretici")]
@@ -29,6 +47,8 @@ namespace PixelBeat.EditorTools.BeatmapGen
 
         private void OnGUI()
         {
+            mode = (Mode)EditorGUILayout.EnumPopup(new GUIContent("Mod", "Melodi: MIDI melodisinden (tercih edilen). Ritim: sadece sesten, beat ızgarasına."), mode);
+
             EditorGUI.BeginChangeCheck();
             clip = (AudioClip)EditorGUILayout.ObjectField("Ses dosyası", clip, typeof(AudioClip), false);
             if (EditorGUI.EndChangeCheck() && clip != null)
@@ -37,19 +57,48 @@ namespace PixelBeat.EditorTools.BeatmapGen
                 if (string.IsNullOrEmpty(songTitle)) songTitle = clip.name;
             }
 
-            difficulty = EditorGUILayout.IntSlider(new GUIContent("Zorluk (yoğunluk)", "1 = seyrek, 10 = yoğun (1/4 notalar 8'den itibaren)"), difficulty, 1, 10);
+            bool midiOk = true;
+            if (mode == Mode.Melodi)
+            {
+                midiAsset = EditorGUILayout.ObjectField(new GUIContent("MIDI dosyası", ".mid (ör. Basic Pitch çıktısı, kayıtla hizalı)"), midiAsset, typeof(Object), false);
+                midiOk = IsMidi(midiAsset);
+                if (midiAsset != null && !midiOk) EditorGUILayout.HelpBox("Seçilen dosya .mid / .midi değil.", MessageType.Warning);
+                offsetMs = EditorGUILayout.FloatField(new GUIContent("Offset (ms)", "Tüm notalara eklenir (MIDI kayıtla tam hizalı değilse)."), offsetMs);
+                minPitch = EditorGUILayout.IntSlider(new GUIContent("Alt perde sınırı", "Bunun altındaki MIDI notaları melodi olamaz (48 = C3)."), minPitch, 0, 127);
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.PrefixLabel("Zorluklar");
+                    makeEasy = GUILayout.Toggle(makeEasy, "Kolay");
+                    makeNormal = GUILayout.Toggle(makeNormal, "Normal");
+                    makeHard = GUILayout.Toggle(makeHard, "Zor");
+                }
+            }
+            else
+            {
+                difficulty = EditorGUILayout.IntSlider(new GUIContent("Zorluk (yoğunluk)", "1 = seyrek, 10 = yoğun (1/4 notalar 8'den itibaren)"), difficulty, 1, 10);
+            }
+
             bpmHint = EditorGUILayout.FloatField(new GUIContent("BPM ipucu", "0 = otomatik. Yarım / iki kat tempo karışıklığını önler."), bpmHint);
             songTitle = EditorGUILayout.TextField("Başlık", songTitle);
             artist = EditorGUILayout.TextField("Sanatçı", artist);
-            fileName = EditorGUILayout.TextField(new GUIContent("Dosya adı", $"{OutputFolder}/<ad>.json"), fileName);
+            string nameTip = mode == Mode.Melodi ? $"{OutputFolder}/<ad>_easy|normal|hard.json" : $"{OutputFolder}/<ad>.json";
+            fileName = EditorGUILayout.TextField(new GUIContent("Dosya adı", nameTip), fileName);
 
             EditorGUILayout.Space();
-            using (new EditorGUI.DisabledScope(clip == null || string.IsNullOrWhiteSpace(fileName)))
+            bool anyDifficulty = makeEasy || makeNormal || makeHard;
+            bool canGenerate = clip != null && !string.IsNullOrWhiteSpace(fileName)
+                               && (mode == Mode.Ritim || (midiAsset != null && midiOk && anyDifficulty));
+            using (new EditorGUI.DisabledScope(!canGenerate))
             {
-                if (GUILayout.Button("Üret", GUILayout.Height(30))) Generate();
+                if (GUILayout.Button("Üret", GUILayout.Height(30)))
+                {
+                    if (mode == Mode.Melodi) GenerateMelody();
+                    else GenerateRhythm();
+                }
             }
 
-            using (new EditorGUI.DisabledScope(string.IsNullOrEmpty(lastPath)))
+            bool hasOutput = mode == Mode.Melodi ? lastMelodyPaths.Count > 0 : !string.IsNullOrEmpty(lastPath);
+            using (new EditorGUI.DisabledScope(!hasOutput))
             {
                 if (GUILayout.Button("Sahneye ata (SongLoader: beatmap + şarkı)")) AssignToScene();
             }
@@ -63,7 +112,16 @@ namespace PixelBeat.EditorTools.BeatmapGen
             }
         }
 
-        private void Generate()
+        private static bool IsMidi(Object asset)
+        {
+            if (asset == null) return false;
+            string ext = Path.GetExtension(AssetDatabase.GetAssetPath(asset)).ToLowerInvariant();
+            return ext == ".mid" || ext == ".midi";
+        }
+
+        // ---------- Ritim modu ----------
+
+        private void GenerateRhythm()
         {
             try
             {
@@ -73,17 +131,9 @@ namespace PixelBeat.EditorTools.BeatmapGen
                 var result = BeatmapGenerator.Generate(samples, channels, rate, settings,
                     (p, label) => EditorUtility.DisplayProgressBar("Beatmap Üretici", label, p));
 
-                var map = ToBeatmap(result);
-                Directory.CreateDirectory(OutputFolder);
                 lastPath = $"{OutputFolder}/{fileName.Trim()}.json";
-                File.WriteAllText(lastPath, JsonUtility.ToJson(map, true));
-                AssetDatabase.ImportAsset(lastPath);
-
-                // Oyunun yükleyeceği haliyle de doğrula (aynı şeritte hold sürerken nota vb.).
-                var chart = NoteChart.FromBeatmap(Beatmap.FromJson(File.ReadAllText(lastPath)), logWarnings: false);
-                var issues = chart.Validate();
-
-                summary = BuildSummary(result, issues);
+                var issues = Write(lastPath, ToBeatmap(result, $"Auto {difficulty}"));
+                summary = BuildSummary(result, issues, null);
                 Debug.Log($"[Beatmap Üretici] {lastPath}\n{summary}");
                 EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<TextAsset>(lastPath));
             }
@@ -91,6 +141,67 @@ namespace PixelBeat.EditorTools.BeatmapGen
             {
                 EditorUtility.ClearProgressBar();
             }
+        }
+
+        // ---------- Melodi modu ----------
+
+        private void GenerateMelody()
+        {
+            try
+            {
+                if (!ReadSamples(clip, out var samples, out int channels, out int rate)) return;
+                var beatTimes = BeatmapGenerator.AnalyzeBeatTimes(samples, channels, rate, bpmHint,
+                    (p, label) => EditorUtility.DisplayProgressBar("Beatmap Üretici (melodi)", label, p * 0.8f));
+
+                EditorUtility.DisplayProgressBar("Beatmap Üretici (melodi)", "MIDI", 0.85f);
+                string midiPath = AssetDatabase.GetAssetPath(midiAsset);
+                var midi = MidiReader.Read(File.ReadAllBytes(midiPath));
+                var melody = MelodyExtractor.Extract(midi.Notes, new MelodyExtractSettings { MinPitch = minPitch });
+
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine($"MIDI: {midi.Notes.Count} nota → melodi hattı {melody.Count} nota");
+                lastMelodyPaths.Clear();
+                string first = null;
+
+                foreach (var d in new[] { MelodyDifficulty.Easy, MelodyDifficulty.Normal, MelodyDifficulty.Hard })
+                {
+                    if ((d == MelodyDifficulty.Easy && !makeEasy) || (d == MelodyDifficulty.Normal && !makeNormal) ||
+                        (d == MelodyDifficulty.Hard && !makeHard))
+                        continue;
+                    EditorUtility.DisplayProgressBar("Beatmap Üretici (melodi)", d.ToString(), 0.9f);
+
+                    var preset = MelodyPreset.For(d);
+                    var result = MelodyGenerator.Generate(melody, beatTimes, preset, offsetMs / 1000.0);
+                    string path = $"{OutputFolder}/{fileName.Trim()}_{preset.Suffix}.json";
+                    var issues = Write(path, ToBeatmap(result, preset.Label));
+                    lastMelodyPaths[d] = path;
+                    first = first ?? path;
+
+                    sb.AppendLine();
+                    sb.AppendLine($"== {preset.Label} → {path}");
+                    sb.Append(BuildSummary(result, issues, preset));
+                }
+
+                summary = sb.ToString().TrimEnd();
+                Debug.Log($"[Beatmap Üretici] Melodi modu\n{summary}");
+                if (first != null) EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<TextAsset>(first));
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
+        }
+
+        // ---------- Ortak ----------
+
+        /// <summary>JSON'u yazar, içe aktarır ve oyunun yükleyeceği haliyle doğrular.</summary>
+        private static List<string> Write(string path, Beatmap map)
+        {
+            Directory.CreateDirectory(OutputFolder);
+            File.WriteAllText(path, JsonUtility.ToJson(map, true));
+            AssetDatabase.ImportAsset(path);
+            var chart = NoteChart.FromBeatmap(Beatmap.FromJson(File.ReadAllText(path)), logWarnings: false);
+            return chart.Validate();
         }
 
         /// <summary>Klibin örneklerini okur; gerekirse Load Type'ı Decompress On Load yapar (GetData için gerekli).</summary>
@@ -126,7 +237,7 @@ namespace PixelBeat.EditorTools.BeatmapGen
             return true;
         }
 
-        private Beatmap ToBeatmap(GeneratorResult r)
+        private Beatmap ToBeatmap(GeneratorResult r, string difficultyLabel)
         {
             var map = new Beatmap
             {
@@ -135,7 +246,7 @@ namespace PixelBeat.EditorTools.BeatmapGen
                 audioFile = AssetDatabase.GetAssetPath(clip).Replace("Assets/", ""),
                 bpm = (float)System.Math.Round(r.MedianBpm, 2),
                 offset = 0,
-                difficulty = $"Auto {difficulty}",
+                difficulty = difficultyLabel,
                 beatTimes = new List<double>(),
                 notes = new List<BeatmapNote>(),
             };
@@ -145,21 +256,27 @@ namespace PixelBeat.EditorTools.BeatmapGen
             return map;
         }
 
-        private static string BuildSummary(GeneratorResult r, List<string> chartIssues)
+        private static string BuildSummary(GeneratorResult r, List<string> chartIssues, MelodyPreset preset)
         {
             int taps = r.Notes.Count - r.Holds;
             double activeSec = r.Notes.Count > 1 ? r.Notes[r.Notes.Count - 1].Time - r.Notes[0].Time : 0;
             var sb = new System.Text.StringBuilder();
-            sb.AppendLine($"Süre: {r.DurationSec:0.0} sn, beat: {r.BeatTimes.Count}");
-            sb.AppendLine($"Tempo: medyan {r.MedianBpm:0.0} BPM (aralık %5–95: {r.MinBpm:0.0}–{r.MaxBpm:0.0})");
-            sb.AppendLine($"Onset: {r.OnsetCount}, ızgara adayı: {r.CandidateCount}");
+            sb.AppendLine($"Beat: {r.BeatTimes.Count}, tempo medyan {r.MedianBpm:0.0} BPM (aralık %5–95: {r.MinBpm:0.0}–{r.MaxBpm:0.0})");
+            if (preset == null) sb.AppendLine($"Süre: {r.DurationSec:0.0} sn, onset: {r.OnsetCount}, ızgara adayı: {r.CandidateCount}");
+            else sb.AppendLine($"Melodi: {r.CandidateCount} → seyreltme sonrası {r.OnsetCount} (hedef {preset.TargetNps:0.0} nota/sn)");
             sb.AppendLine($"Nota: {r.Notes.Count} (tap {taps}, hold {r.Holds}, akor {r.Chords}), " +
                           $"{(activeSec > 0 ? r.Notes.Count / activeSec : 0):0.00} nota/sn");
+            if (r.Notes.Count > 0)
+            {
+                var firsts = new List<string>();
+                for (int i = 0; i < r.Notes.Count && i < 4; i++) firsts.Add($"{r.Notes[i].Time:0.00}");
+                sb.AppendLine($"İlk notalar (sn): {string.Join(", ", firsts)}");
+            }
             sb.AppendLine($"Şerit dağıtımında: düşen {r.LaneStats.Dropped}, teke inen akor {r.LaneStats.DemotedChords}, tap'e inen hold {r.LaneStats.DemotedHolds}");
 
             var all = new List<string>(r.Warnings);
             all.AddRange(chartIssues);
-            if (all.Count == 0) sb.Append("Denetim: sorun yok (iki parmak + GDD §7 kuralları).");
+            if (all.Count == 0) sb.AppendLine("Denetim: sorun yok (iki parmak + GDD §7 kuralları).");
             else
             {
                 sb.AppendLine($"Denetim: {all.Count} sorun");
@@ -178,11 +295,37 @@ namespace PixelBeat.EditorTools.BeatmapGen
             }
 
             var so = new SerializedObject(loader);
-            so.FindProperty("beatmapJson").objectReferenceValue = AssetDatabase.LoadAssetAtPath<TextAsset>(lastPath);
+            if (mode == Mode.Melodi)
+            {
+                Set(so, "easyBeatmap", MelodyDifficulty.Easy);
+                Set(so, "normalBeatmap", MelodyDifficulty.Normal);
+                Set(so, "hardBeatmap", MelodyDifficulty.Hard);
+                so.FindProperty("difficulty").enumValueIndex = lastMelodyPaths.ContainsKey(MelodyDifficulty.Normal)
+                    ? (int)SongDifficulty.Normal
+                    : (int)SongDifficulty.Easy + (int)FirstKey();
+            }
+            else
+            {
+                so.FindProperty("beatmapJson").objectReferenceValue = AssetDatabase.LoadAssetAtPath<TextAsset>(lastPath);
+                so.FindProperty("difficulty").enumValueIndex = (int)SongDifficulty.Custom;
+            }
             so.FindProperty("musicClip").objectReferenceValue = clip;
             so.ApplyModifiedProperties();
             EditorSceneManager.MarkSceneDirty(loader.gameObject.scene);
-            Debug.Log($"[Beatmap Üretici] SongLoader → {lastPath} + {clip.name}. Sahneyi kaydetmeyi unutma.");
+            Debug.Log($"[Beatmap Üretici] SongLoader → {(mode == Mode.Melodi ? string.Join(", ", lastMelodyPaths.Values) : lastPath)} + {clip.name}. Sahneyi kaydetmeyi unutma.");
+        }
+
+        private void Set(SerializedObject so, string property, MelodyDifficulty d)
+        {
+            if (lastMelodyPaths.TryGetValue(d, out var path))
+                so.FindProperty(property).objectReferenceValue = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
+        }
+
+        private MelodyDifficulty FirstKey()
+        {
+            foreach (var d in new[] { MelodyDifficulty.Easy, MelodyDifficulty.Normal, MelodyDifficulty.Hard })
+                if (lastMelodyPaths.ContainsKey(d)) return d;
+            return MelodyDifficulty.Easy;
         }
     }
 }

@@ -22,6 +22,17 @@ namespace PixelBeat.EditorTools.BeatmapGen
         public int DemotedHolds;
     }
 
+    /// <summary>Melodi modunda önceki notaya göre perde yönü (GDD §7.1). None = ritim modu / ilk nota.</summary>
+    public enum ContourStep
+    {
+        None,
+        Repeat,
+        Up,
+        Down,
+        JumpUp,
+        JumpDown,
+    }
+
     /// <summary>
     /// Şerit dağıtımı (GDD §7) — iki başparmakla oynanabilirlik:
     /// - Şerit 0–1 sol el, 2–3 sağ el. Aynı anda en fazla 2 parmak.
@@ -30,6 +41,8 @@ namespace PixelBeat.EditorTools.BeatmapGen
     /// - Aynı el art arda en az <see cref="MinHandGapSec"/> bekler (hold'da bitişten itibaren).
     /// - Aynı şeride art arda en fazla <see cref="MaxSameLaneRun"/> tekli nota.
     /// Kısıtlar içinde şerit ses perdesine göre seçilir (bas → sol, tiz → sağ). Tamamen belirleyicidir.
+    /// Melodi modu (GDD §7.1): tercih edilen şerit dışarıdan gelir ve perde yönü (<see cref="ContourStep"/>) maliyete katılır;
+    /// kısıtlar aynıdır.
     /// </summary>
     public static class LaneAssigner
     {
@@ -40,15 +53,28 @@ namespace PixelBeat.EditorTools.BeatmapGen
 
         public static int HandOf(int lane) => lane < 2 ? 0 : 1;
 
+        /// <summary>Ritim modu: şerit, notanın spektral merkezinin (Centroid) yüzdeliğinden.</summary>
         public static List<GeneratedNote> Assign(IReadOnlyList<PlannedNote> notes, TempoMap tempo, out LaneAssignStats stats)
         {
-            stats = default;
-            var result = new List<GeneratedNote>();
-
             // Ses perdesi yüzdeliği → tercih edilen şerit.
             var centroids = new List<double>();
             foreach (var n in notes) centroids.Add(n.Centroid);
             centroids.Sort();
+            var prefs = new double[notes.Count];
+            for (int i = 0; i < notes.Count; i++) prefs[i] = PreferredLane(centroids, notes[i].Centroid);
+            return Assign(notes, prefs, null, tempo, out stats);
+        }
+
+        /// <summary>
+        /// preferredLanes: not başına 0–3 (kesirli) tercih. contour null ise ritim modu maliyeti,
+        /// doluysa melodi modu maliyeti (yön uyumu öncelikli, tekrar eden perdeye aynı/komşu şerit).
+        /// </summary>
+        public static List<GeneratedNote> Assign(IReadOnlyList<PlannedNote> notes, IReadOnlyList<double> preferredLanes,
+            IReadOnlyList<ContourStep> contour, TempoMap tempo, out LaneAssignStats stats)
+        {
+            stats = default;
+            var result = new List<GeneratedNote>();
+            int contourLane = -1; // melodi: önceki notanın (akorda tiz notanın) şeridi
 
             var handFreeAt = new[] { double.NegativeInfinity, double.NegativeInfinity };
             var laneBlockedUntil = new double[LaneCount]; // hold bitişi (dahil)
@@ -57,13 +83,19 @@ namespace PixelBeat.EditorTools.BeatmapGen
             int holdHand = -1;
             int lastLane = -1, run = 0, lastHand = -1;
 
-            foreach (var note in notes)
+            for (int idx = 0; idx < notes.Count; idx++)
             {
+                var note = notes[idx];
                 double t = note.Time;
                 bool holdActive = t <= holdEnd + Eps;
                 if (!holdActive) holdHand = -1;
 
-                double pref = PreferredLane(centroids, note.Centroid);
+                double pref = preferredLanes[idx];
+                var step = contour != null ? contour[idx] : ContourStep.None;
+                int prevContourLane = contourLane;
+                Func<int, double> cost = contour == null
+                    ? (Func<int, double>)(l => RhythmCost(l, pref, lastHand, lastLane))
+                    : l => MelodyCost(l, pref, step, prevContourLane);
 
                 bool HandOk(int h) => handFreeAt[h] <= t + Eps && !(holdActive && holdHand == h);
                 bool LaneOk(int lane) => HandOk(HandOf(lane)) && t > laneBlockedUntil[lane] + Eps
@@ -78,20 +110,21 @@ namespace PixelBeat.EditorTools.BeatmapGen
 
                 if (wantChord)
                 {
-                    int left = BestLane(0, 1, pref, LaneOk, lastHand, lastLane);
-                    int right = BestLane(2, 3, pref, LaneOk, lastHand, lastLane);
+                    int left = BestLane(0, 1, LaneOk, cost);
+                    int right = BestLane(2, 3, LaneOk, cost);
                     if (left >= 0 && right >= 0)
                     {
                         Add(result, note, left, 0, tempo);
                         Add(result, note, right, 0, tempo);
                         handFreeAt[0] = handFreeAt[1] = t + MinHandGapSec;
                         lastLane = -1; run = 0; lastHand = -1; // akor tekli seriyi sıfırlar
+                        contourLane = right;
                         continue;
                     }
                     stats.DemotedChords++;
                 }
 
-                int lane = BestLane(0, LaneCount - 1, pref, LaneOk, lastHand, lastLane);
+                int lane = BestLane(0, LaneCount - 1, LaneOk, cost);
                 if (lane < 0)
                 {
                     stats.Dropped++;
@@ -118,9 +151,52 @@ namespace PixelBeat.EditorTools.BeatmapGen
                 run = lane == lastLane ? run + 1 : 1;
                 lastLane = lane;
                 lastHand = hand;
+                contourLane = lane;
             }
 
             return result;
+        }
+
+        /// <summary>Ritim modu: tercihe uzaklık; el değiştirmeyi ve şerit değiştirmeyi hafif ödüllendirir.</summary>
+        private static double RhythmCost(int lane, double pref, int lastHand, int lastLane)
+        {
+            double cost = Math.Abs(lane - pref);
+            if (HandOf(lane) == lastHand) cost += 0.3;
+            if (lane == lastLane) cost += 0.5;
+            return cost;
+        }
+
+        /// <summary>Melodi modu: yön uyumu (yukarı → sağ, aşağı → sol, tekrar → aynı/komşu, atlama → ≥ 2 şerit) + tercihe uzaklık.</summary>
+        public static double MelodyCost(int lane, double pref, ContourStep step, int prevLane)
+        {
+            double cost = 0.5 * Math.Abs(lane - pref);
+            if (prevLane < 0) return cost;
+            int d = lane - prevLane;
+            switch (step)
+            {
+                case ContourStep.Repeat:
+                    if (Math.Abs(d) == 1) cost += 0.2;
+                    else if (Math.Abs(d) > 1) cost += 1.0;
+                    break;
+                // Küçük adımda yerinde kalmak serbestçe olur (4 şeritte uzun gam sığsın), ters yön pahalı.
+                case ContourStep.Up:
+                    if (d < 0) cost += 1.0;
+                    else if (d == 0) cost += 0.3;
+                    break;
+                case ContourStep.Down:
+                    if (d > 0) cost += 1.0;
+                    else if (d == 0) cost += 0.3;
+                    break;
+                case ContourStep.JumpUp:
+                    if (d <= 0) cost += 1.0;
+                    else if (d == 1) cost += 0.5;
+                    break;
+                case ContourStep.JumpDown:
+                    if (d >= 0) cost += 1.0;
+                    else if (d == -1) cost += 0.5;
+                    break;
+            }
+            return cost;
         }
 
         private static GeneratedNote Add(List<GeneratedNote> list, PlannedNote n, int lane, double length, TempoMap tempo)
@@ -147,17 +223,15 @@ namespace PixelBeat.EditorTools.BeatmapGen
             return Math.Max(0, Math.Min(3, pct * 4 - 0.5));
         }
 
-        /// <summary>[from, to] aralığında kısıtlara uyan, tercihe en yakın şerit (el değiştirmeyi ve şerit değiştirmeyi hafif ödüllendirir).</summary>
-        private static int BestLane(int from, int to, double pref, Func<int, bool> ok, int lastHand, int lastLane)
+        /// <summary>[from, to] aralığında kısıtlara uyan, maliyeti en düşük şerit (eşitlikte soldaki).</summary>
+        private static int BestLane(int from, int to, Func<int, bool> ok, Func<int, double> laneCost)
         {
             int best = -1;
             double bestCost = double.MaxValue;
             for (int lane = from; lane <= to; lane++)
             {
                 if (!ok(lane)) continue;
-                double cost = Math.Abs(lane - pref);
-                if (HandOf(lane) == lastHand) cost += 0.3;
-                if (lane == lastLane) cost += 0.5;
+                double cost = laneCost(lane);
                 if (cost < bestCost - 1e-9)
                 {
                     bestCost = cost;

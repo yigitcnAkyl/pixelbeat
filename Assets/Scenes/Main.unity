@@ -158,7 +158,11 @@ MonoBehaviour:
   conductor: {fileID: 364336860}
   judgementSystem: {fileID: 275090369}
   noteSpawner: {fileID: 275090367}
+  difficulty: 2
   beatmapJson: {fileID: 4900000, guid: e4ff42c12c337f44184759e25f74982c, type: 3}
+  easyBeatmap: {fileID: 4900000, guid: c4f635c35f3a50041b4531151c22cb9d, type: 3}
+  normalBeatmap: {fileID: 4900000, guid: 4f1b460243cfc094b994fe4038804963, type: 3}
+  hardBeatmap: {fileID: 4900000, guid: 37c74cac4058dee4cb2c91b94e1e3684, type: 3}
   musicClip: {fileID: 8300000, guid: 74adac10893d2994bb6177bd0de93cce, type: 3}
   addClickTrack: 0
   clickTrack: {fileID: 0}

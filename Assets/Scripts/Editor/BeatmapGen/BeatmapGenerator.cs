@@ -115,7 +115,19 @@ namespace PixelBeat.EditorTools.BeatmapGen
             return times;
         }
 
-        private static void FillTempoStats(GeneratorResult r)
+        /// <summary>Sadece beat takibi (melodi modu: vuruş çizgisi parlaması için beat zamanları yine şarkıdan).</summary>
+        public static List<double> AnalyzeBeatTimes(float[] interleaved, int channels, int sampleRate, double bpmHint,
+            Action<float, string> progress = null)
+        {
+            progress?.Invoke(0f, "Ses hazırlanıyor");
+            var mono = AudioPrep.ToMonoDownsampled(interleaved, channels, sampleRate, out int rate);
+            var a = SpectralAnalysis.Analyze(mono, rate, p => progress?.Invoke(0.05f + 0.8f * p, "Spektrum"));
+            if (a.FrameCount < 16) return new List<double>();
+            progress?.Invoke(0.9f, "Tempo ve beat takibi");
+            return TrackBeatTimes(a, bpmHint, out _);
+        }
+
+        public static void FillTempoStats(GeneratorResult r)
         {
             var bpms = new List<double>();
             for (int i = 1; i < r.BeatTimes.Count; i++) bpms.Add(60.0 / (r.BeatTimes[i] - r.BeatTimes[i - 1]));

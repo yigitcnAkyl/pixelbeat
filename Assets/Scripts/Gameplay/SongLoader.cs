@@ -5,6 +5,15 @@ using UnityEngine.InputSystem;
 
 namespace PixelBeat.Gameplay
 {
+    /// <summary>SongLoader'ın çalacağı harita: Özel (tek beatmap) ya da melodi modu zorlukları.</summary>
+    public enum SongDifficulty
+    {
+        Custom,
+        Easy,
+        Normal,
+        Hard,
+    }
+
     /// <summary>
     /// Beatmap JSON'unu yükler, Conductor'ı tempo haritasıyla yapılandırır, sistemlere chart'ı verir ve şarkıyı başlatır.
     /// Çalınacak beatmap ve şarkı Inspector'dan seçilir. Şarkı yoksa beatmap'in beat'lerinde metronom tıkı çalar.
@@ -17,7 +26,12 @@ namespace PixelBeat.Gameplay
         [SerializeField] private NoteSpawner noteSpawner;
 
         [Header("Çalınacak şarkı")]
+        [Tooltip("Özel: tek beatmap (ritim modu / elle yazılmış). Kolay/Normal/Zor: melodi modu haritaları.")]
+        [SerializeField] private SongDifficulty difficulty = SongDifficulty.Custom;
         [SerializeField] private TextAsset beatmapJson;
+        [SerializeField] private TextAsset easyBeatmap;
+        [SerializeField] private TextAsset normalBeatmap;
+        [SerializeField] private TextAsset hardBeatmap;
         [Tooltip("Şarkı. Boşsa beatmap'in beat'lerinde tık çalan metronom kullanılır.")]
         [SerializeField] private AudioClip musicClip;
         [Tooltip("Şarkının üstüne beatmap'in beat'lerinde tık çal (beat takibini kulakla kontrol etmek için).")]
@@ -30,6 +44,22 @@ namespace PixelBeat.Gameplay
         private bool suspended;
 
         public Beatmap CurrentBeatmap { get; private set; }
+
+        public SongDifficulty Difficulty => difficulty;
+
+        private TextAsset SelectedBeatmap
+        {
+            get
+            {
+                switch (difficulty)
+                {
+                    case SongDifficulty.Easy: return easyBeatmap;
+                    case SongDifficulty.Normal: return normalBeatmap;
+                    case SongDifficulty.Hard: return hardBeatmap;
+                    default: return beatmapJson;
+                }
+            }
+        }
 
         /// <summary>Şarkı (yeniden) başladı: yeni chart.</summary>
         public event System.Action<NoteChart> SongStarted;
@@ -84,13 +114,14 @@ namespace PixelBeat.Gameplay
         public void Restart()
         {
             suspended = false;
-            if (beatmapJson == null)
+            var json = SelectedBeatmap;
+            if (json == null)
             {
-                Debug.LogError("[SongLoader] Beatmap atanmamış.");
+                Debug.LogError($"[SongLoader] {difficulty} beatmap'i atanmamış.");
                 return;
             }
 
-            CurrentBeatmap = Beatmap.FromJson(beatmapJson.text);
+            CurrentBeatmap = Beatmap.FromJson(json.text);
             var tempo = CurrentBeatmap.CreateTempoMap();
             conductor.SetTempoMap(tempo);
 
