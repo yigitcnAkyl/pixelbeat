@@ -135,6 +135,7 @@ GameObject:
   - component: {fileID: 275090366}
   - component: {fileID: 275090365}
   - component: {fileID: 275090372}
+  - component: {fileID: 275090373}
   m_Layer: 0
   m_Name: Gameplay
   m_TagString: Untagged
@@ -179,10 +180,18 @@ MonoBehaviour:
   yPx: 0
   releaseLineOffsetPx: 10
   displaySec: 0.4
-  perfectColor: {r: 0.2, g: 1, b: 1, a: 1}
-  greatColor: {r: 0.4, g: 1, b: 0.4, a: 1}
-  goodColor: {r: 1, g: 0.8156863, b: 0.2509804, a: 1}
-  missColor: {r: 1, g: 0.2509804, b: 0.3764706, a: 1}
+  perfectColor:
+    color: 7
+    transparency: 0
+  greatColor:
+    color: 12
+    transparency: 0
+  goodColor:
+    color: 13
+    transparency: 0
+  missColor:
+    color: 15
+    transparency: 0
 --- !u!114 &275090367
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -198,17 +207,12 @@ MonoBehaviour:
   conductor: {fileID: 364336860}
   playfield: {fileID: 275090368}
   scrollTimeSec: 1
-  noteHeightPx: 4
+  noteHeightPx: 6
   holdBodyInsetPx: 9
-  holdTailHeightPx: 2
-  holdBodyBrightness: 0.55
-  laneColors:
-  - {r: 0.2, g: 1, b: 1, a: 1}
-  - {r: 1, g: 0.2509804, b: 0.7529412, a: 1}
-  - {r: 1, g: 0.2509804, b: 0.7529412, a: 1}
-  - {r: 0.2, g: 1, b: 1, a: 1}
-  missedColor: {r: 0.3137255, g: 0.3137255, b: 0.40784314, a: 1}
-  missedBodyColor: {r: 0.20392157, g: 0.20392157, b: 0.28235295, a: 1}
+  holdTailHeightPx: 3
+  laneColors: 07000000090000000900000007000000
+  missedColor: 4
+  glowAlpha: 0.35
 --- !u!114 &275090368
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -226,20 +230,22 @@ MonoBehaviour:
   screenLayout: {fileID: 519420034}
   judgementSystem: {fileID: 275090369}
   noteSpawner: {fileID: 275090367}
+  skin: {fileID: 11400000, guid: eacdb973dda2466499d1d63a5f160bd0, type: 2}
   pixelSprite: {fileID: 21300000, guid: 3470f2bc24394294f99f2ecd976a5545, type: 3}
   laneWidthPx: 40
   hitLineFromBottom: 0.2
   touchZoneHeight: 0.35
   keyPadMarginPx: 4
-  backgroundColor: {r: 0.043137256, g: 0.043137256, b: 0.08627451, a: 1}
-  panelColor: {r: 0.078431375, g: 0.078431375, b: 0.15686275, a: 1}
-  separatorColor: {r: 0.16470589, g: 0.16470589, b: 0.28235295, a: 1}
-  hitLineColor: {r: 0.5411765, g: 0.5411765, b: 0.6901961, a: 1}
-  hitLineBeatColor: {r: 1, g: 1, b: 1, a: 1}
-  keyIdleColor: {r: 0.13333334, g: 0.13333334, b: 0.22745098, a: 1}
-  keyPressedColor: {r: 0.2, g: 1, b: 1, a: 1}
-  keyLabelIdleColor: {r: 0.5411765, g: 0.5411765, b: 0.6901961, a: 1}
-  keyLabelPressedColor: {r: 0.043137256, g: 0.043137256, b: 0.08627451, a: 1}
+  panelAlpha: 0.82
+  separatorColor:
+    color: 3
+    transparency: 0
+  keyLabelIdleColor:
+    color: 5
+    transparency: 0
+  keyLabelPressedColor:
+    color: 6
+    transparency: 0
   beatGlowBeats: 0.2
   holdGlowAlpha: 0.07
 --- !u!114 &275090369
@@ -371,6 +377,30 @@ MonoBehaviour:
   laneInput: {fileID: 275090370}
   resultsDelaySec: 1
   restartGuardSec: 0.6
+--- !u!114 &275090373
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 275090364}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a311dfcb7b48f549bdfcb5d5caa867b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PixelBeat.Gameplay.HitFeedback
+  judgementSystem: {fileID: 275090369}
+  playfield: {fileID: 275090368}
+  noteSpawner: {fileID: 275090367}
+  perfectFlashSec: 0.18
+  flashSec: 0.12
+  perfectFlashAlpha: 0.9
+  flashAlpha: 0.5
+  flashHeightPx: 48
+  upSpeed: {x: 40, y: 110}
+  sideSpeed: 45
+  gravity: 260
+  lifeSec: {x: 0.3, y: 0.55}
 --- !u!1 &364336859
 GameObject:
   m_ObjectHideFlags: 0
@@ -793,6 +823,7 @@ GameObject:
   - component: {fileID: 669285183}
   - component: {fileID: 669285182}
   - component: {fileID: 669285184}
+  - component: {fileID: 669285185}
   m_Layer: 0
   m_Name: UI
   m_TagString: Untagged
@@ -835,15 +866,26 @@ MonoBehaviour:
   screenLayout: {fileID: 519420034}
   laneInput: {fileID: 275090370}
   songLoader: {fileID: 275090365}
+  crtOverlay: {fileID: 669285185}
   bpm: 90
   warmupTaps: 4
   measuredTaps: 16
   trimEachSide: 2
-  overlayColor: {r: 0.043137256, g: 0.043137256, b: 0.08627451, a: 1}
-  titleColor: {r: 1, g: 0.2509804, b: 0.7529412, a: 1}
-  textColor: {r: 0.5411765, g: 0.5411765, b: 0.6901961, a: 1}
-  valueColor: {r: 0.2, g: 1, b: 1, a: 1}
-  warnColor: {r: 1, g: 0.8156863, b: 0.2509804, a: 1}
+  overlayColor:
+    color: 0
+    transparency: 0
+  titleColor:
+    color: 9
+    transparency: 0
+  textColor:
+    color: 5
+    transparency: 0
+  valueColor:
+    color: 7
+    transparency: 0
+  warnColor:
+    color: 13
+    transparency: 0
 --- !u!4 &669285181
 Transform:
   m_ObjectHideFlags: 0
@@ -874,15 +916,33 @@ MonoBehaviour:
   gameSession: {fileID: 275090372}
   playfield: {fileID: 275090368}
   screenLayout: {fileID: 519420034}
-  overlayColor: {r: 0.043137256, g: 0.043137256, b: 0.08627451, a: 0.9411765}
-  failedColor: {r: 1, g: 0.2509804, b: 0.3764706, a: 1}
-  textColor: {r: 0.5411765, g: 0.5411765, b: 0.6901961, a: 1}
-  valueColor: {r: 1, g: 1, b: 1, a: 1}
-  specialColor: {r: 1, g: 0.8156863, b: 0.2509804, a: 1}
-  perfectColor: {r: 0.2, g: 1, b: 1, a: 1}
-  greatColor: {r: 0.4, g: 1, b: 0.4, a: 1}
-  goodColor: {r: 1, g: 0.8156863, b: 0.2509804, a: 1}
-  missColor: {r: 1, g: 0.2509804, b: 0.3764706, a: 1}
+  overlayColor:
+    color: 0
+    transparency: 0.060000002
+  failedColor:
+    color: 15
+    transparency: 0
+  textColor:
+    color: 5
+    transparency: 0
+  valueColor:
+    color: 6
+    transparency: 0
+  specialColor:
+    color: 13
+    transparency: 0
+  perfectColor:
+    color: 7
+    transparency: 0
+  greatColor:
+    color: 12
+    transparency: 0
+  goodColor:
+    color: 13
+    transparency: 0
+  missColor:
+    color: 15
+    transparency: 0
 --- !u!114 &669285183
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -903,11 +963,21 @@ MonoBehaviour:
   comboScale: 2
   healthBarHeightPx: 2
   lowHealth: 30
-  scoreColor: {r: 1, g: 1, b: 1, a: 1}
-  comboColor: {r: 1, g: 0.2509804, b: 0.7529412, a: 1}
-  healthColor: {r: 0.2, g: 1, b: 1, a: 1}
-  lowHealthColor: {r: 1, g: 0.2509804, b: 0.3764706, a: 1}
-  healthBackColor: {r: 0.13333334, g: 0.13333334, b: 0.22745098, a: 1}
+  scoreColor:
+    color: 6
+    transparency: 0
+  comboColor:
+    color: 9
+    transparency: 0
+  healthColor:
+    color: 7
+    transparency: 0
+  lowHealthColor:
+    color: 15
+    transparency: 0
+  healthBackColor:
+    color: 2
+    transparency: 0
 --- !u!114 &669285184
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -931,11 +1001,90 @@ MonoBehaviour:
   bumpSec: 0.15
   breakSec: 0.4
   tierColors:
-  - {r: 0.2, g: 1, b: 1, a: 1}
-  - {r: 0.4, g: 1, b: 0.4, a: 1}
-  - {r: 1, g: 0.8156863, b: 0.2509804, a: 1}
-  - {r: 1, g: 0.2509804, b: 0.7529412, a: 1}
-  flashColor: {r: 1, g: 1, b: 1, a: 1}
+  - color: 7
+    transparency: 0
+  - color: 12
+    transparency: 0
+  - color: 13
+    transparency: 0
+  - color: 9
+    transparency: 0
+  flashColor:
+    color: 6
+    transparency: 0
+--- !u!114 &669285185
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 669285178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24857a607d46fef4590c3b6186b37104, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PixelBeat.UI.CrtOverlay
+  screenLayout: {fileID: 519420034}
+  enabledByDefault: 1
+  scanlineStrength: 0.22
+  vignetteStrength: 0.3
+--- !u!1 &1631473944
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1631473946}
+  - component: {fileID: 1631473945}
+  m_Layer: 0
+  m_Name: Background
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1631473945
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1631473944}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11d842b7feb3e504981d5675d4c1d647, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PixelBeat.UI.NeonBackground
+  screenLayout: {fileID: 519420034}
+  playfield: {fileID: 275090368}
+  backgroundSprite: {fileID: 0}
+  horizonFromBottom: 0.45
+  animatedGrid: 1
+  gridLines: 9
+  gridSpeed: 0.35
+  gridNearColor:
+    color: 11
+    transparency: 0
+  gridFarColor:
+    color: 10
+    transparency: 0
+--- !u!4 &1631473946
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1631473944}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -945,3 +1094,4 @@ SceneRoots:
   - {fileID: 364336863}
   - {fileID: 275090371}
   - {fileID: 669285181}
+  - {fileID: 1631473946}

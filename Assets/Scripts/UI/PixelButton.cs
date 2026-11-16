@@ -1,3 +1,4 @@
+using PixelBeat.Core;
 using PixelBeat.Gameplay;
 using UnityEngine;
 
@@ -9,15 +10,20 @@ namespace PixelBeat.UI
         /// <summary>Parmak için görselden biraz geniş tıklama alanı (piksel).</summary>
         private const int HitPaddingPx = 3;
 
-        private static readonly Color BgColor = new Color32(0x22, 0x22, 0x3A, 0xFF);
-        private static readonly Color TextColor = new Color32(0x33, 0xFF, 0xFF, 0xFF);
+        private static readonly Color BgColor = Palette.Get(PaletteColor.Slate);
+        private static readonly Color TextColor = Palette.Get(PaletteColor.Cyan);
 
         private readonly GameObject root;
         private readonly Playfield playfield;
         private readonly SpriteRenderer bg;
         private readonly PixelText label;
-        private readonly string text;
+        private string text;
         private RectInt rect;
+
+        /// <summary>Yazıyı değiştirir (yeniden yerleştirmek için Place çağrılmalı).</summary>
+        public void SetText(string newText) => text = newText;
+
+        public string Text => text;
 
         public PixelButton(Playfield playfield, Transform parent, string text, int sortingOrder)
         {

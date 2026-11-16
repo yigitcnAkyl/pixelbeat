@@ -37,14 +37,14 @@ namespace PixelBeat.UI
         [SerializeField, Min(0.01f)] private float breakSec = 0.4f;
 
         [Header("Kademe renkleri (<10, 10+, 25+, 50+)")]
-        [SerializeField] private Color[] tierColors =
+        [SerializeField] private PaletteRef[] tierColors =
         {
-            new Color32(0x33, 0xFF, 0xFF, 0xFF),
-            new Color32(0x66, 0xFF, 0x66, 0xFF),
-            new Color32(0xFF, 0xD0, 0x40, 0xFF),
-            new Color32(0xFF, 0x40, 0xC0, 0xFF),
+            PaletteColor.Cyan,
+            PaletteColor.Lime,
+            PaletteColor.Gold,
+            PaletteColor.Magenta,
         };
-        [SerializeField] private Color flashColor = Color.white;
+        [SerializeField] private PaletteRef flashColor = PaletteColor.White;
 
         private Transform root;
         private SpriteRenderer label;

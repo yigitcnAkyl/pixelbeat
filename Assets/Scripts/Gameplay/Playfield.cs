@@ -6,7 +6,8 @@ namespace PixelBeat.Gameplay
 {
     /// <summary>
     /// Dikey oyun alanı düzeni (oyun pikseli, ekran merkezi = 0,0, genişlik 180, yükseklik telefona göre) ve statik görseller:
-    /// şerit paneli, ayraçlar, vuruş çizgisi, dokunma göstergeleri. Ekran/safe area değişince yeniden kurulur.
+    /// yarı saydam neon şerit panelleri, ayraçlar, vuruş çizgisi, dokunma göstergeleri. Ekran/safe area değişince yeniden kurulur.
+    /// Sprite'lar NeonSkin'den (paletten üretilmiş pixel art); 9-slice / döşeme ile tam piksel boyutlanır.
     /// </summary>
     public class Playfield : MonoBehaviour
     {
@@ -18,7 +19,8 @@ namespace PixelBeat.Gameplay
         [Tooltip("Hold tutulurken şerit parlaması için.")]
         [SerializeField] private JudgementSystem judgementSystem;
         [SerializeField] private NoteSpawner noteSpawner;
-        [Tooltip("16x16 beyaz placeholder sprite (PPU 16)")]
+        [SerializeField] private NeonSkin skin;
+        [Tooltip("16x16 beyaz placeholder sprite (PPU 16) — düz dikdörtgenler için.")]
         [SerializeField] private Sprite pixelSprite;
 
         [Header("Düzen")]
@@ -30,16 +32,12 @@ namespace PixelBeat.Gameplay
         [Tooltip("Dokunma göstergelerinin vuruş çizgisine ve safe area altına uzaklığı (piksel).")]
         [SerializeField, Min(0)] private int keyPadMarginPx = 4;
 
-        [Header("Renkler")]
-        [SerializeField] private Color backgroundColor = new Color32(0x0B, 0x0B, 0x16, 0xFF);
-        [SerializeField] private Color panelColor = new Color32(0x14, 0x14, 0x28, 0xFF);
-        [SerializeField] private Color separatorColor = new Color32(0x2A, 0x2A, 0x48, 0xFF);
-        [SerializeField] private Color hitLineColor = new Color32(0x8A, 0x8A, 0xB0, 0xFF);
-        [SerializeField] private Color hitLineBeatColor = new Color32(0xFF, 0xFF, 0xFF, 0xFF);
-        [SerializeField] private Color keyIdleColor = new Color32(0x1A, 0x1A, 0x30, 0xFF);
-        [SerializeField] private Color keyPressedColor = new Color32(0x33, 0xFF, 0xFF, 0xFF);
-        [SerializeField] private Color keyLabelIdleColor = new Color32(0x8A, 0x8A, 0xB0, 0xFF);
-        [SerializeField] private Color keyLabelPressedColor = new Color32(0x0B, 0x0B, 0x16, 0xFF);
+        [Header("Görünüm")]
+        [Tooltip("Şerit panelinin opaklığı (arka plan altından hafifçe görünsün).")]
+        [SerializeField, Range(0f, 1f)] private float panelAlpha = 0.82f;
+        [SerializeField] private PaletteRef separatorColor = PaletteColor.Steel;
+        [SerializeField] private PaletteRef keyLabelIdleColor = PaletteColor.Haze;
+        [SerializeField] private PaletteRef keyLabelPressedColor = PaletteColor.White;
         [SerializeField, Range(0.05f, 1f)] private float beatGlowBeats = 0.2f;
         [Tooltip("Hold tutulurken şerit panelinin parlaklığı (şerit rengi alfa).")]
         [SerializeField, Range(0f, 1f)] private float holdGlowAlpha = 0.07f;
@@ -49,6 +47,7 @@ namespace PixelBeat.Gameplay
         private SpriteRenderer hitLine;
         private SpriteRenderer[] keyBoxes;
         private SpriteRenderer[] keyLabels;
+        private float hitFlashTimer;
 
         public int LaneCount => NoteChart.LaneCount;
         public int LaneWidthPx => laneWidthPx;
@@ -63,8 +62,10 @@ namespace PixelBeat.Gameplay
         public int FieldLeftPx => -FieldWidthPx / 2;
         public Sprite PixelSprite => pixelSprite;
         public ScreenLayout Layout => screenLayout;
+        public NeonSkin Skin => skin;
 
         public int LaneLeftPx(int lane) => FieldLeftPx + lane * laneWidthPx;
+        public int LaneCenterPx(int lane) => LaneLeftPx(lane) + laneWidthPx / 2;
 
         /// <summary>Yatay konumdan şerit. Dış şeritler ekran kenarına kadar uzar (4 bölge tüm genişliği kaplar).</summary>
         public int LaneAtPx(float xPx) => Mathf.Clamp(Mathf.FloorToInt((xPx - FieldLeftPx) / laneWidthPx), 0, LaneCount - 1);
@@ -74,6 +75,14 @@ namespace PixelBeat.Gameplay
         {
             t.localPosition = new Vector3((xPx + wPx * 0.5f) / PixelsPerUnit, (yPx + hPx * 0.5f) / PixelsPerUnit, 0f);
             t.localScale = new Vector3(wPx / spriteSizePx, hPx / spriteSizePx, 1f);
+        }
+
+        /// <summary>9-slice / döşemeli sprite'ı ölçeklemeden, tam piksel boyutla yerleştirir (sol-alt köşe).</summary>
+        public static void PlaceSized(SpriteRenderer sr, float xPx, float yPx, int wPx, int hPx)
+        {
+            sr.transform.localPosition = new Vector3((xPx + wPx * 0.5f) / PixelsPerUnit, (yPx + hPx * 0.5f) / PixelsPerUnit, 0f);
+            sr.transform.localScale = Vector3.one;
+            sr.size = new Vector2(wPx / PixelsPerUnit, hPx / PixelsPerUnit);
         }
 
         public SpriteRenderer CreateRect(string objName, Transform parent, int xPx, int yPx, int wPx, int hPx, Color color, int order)
@@ -88,6 +97,25 @@ namespace PixelBeat.Gameplay
             return sr;
         }
 
+        /// <summary>NeonSkin sprite'ı (Sliced ya da Tiled) oluşturur. additive = parlama materyali.</summary>
+        public SpriteRenderer CreateSkinned(string objName, Transform parent, Sprite sprite, SpriteDrawMode mode,
+            int xPx, int yPx, int wPx, int hPx, int order, bool additive = false)
+        {
+            var go = new GameObject(objName);
+            go.transform.SetParent(parent, false);
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = sprite;
+            sr.drawMode = mode;
+            if (mode == SpriteDrawMode.Tiled) sr.tileMode = SpriteTileMode.Continuous;
+            sr.sortingOrder = order;
+            if (additive && skin != null && skin.Additive != null) sr.sharedMaterial = skin.Additive;
+            PlaceSized(sr, xPx, yPx, wPx, hPx);
+            return sr;
+        }
+
+        /// <summary>Vuruşta çizgi kısa süre parlak sprite'a geçer (HitFeedback çağırır).</summary>
+        public void FlashHitLine(float seconds) => hitFlashTimer = Mathf.Max(hitFlashTimer, seconds);
+
         private void Awake()
         {
             screenLayout.Refresh(false);
@@ -97,6 +125,8 @@ namespace PixelBeat.Gameplay
         private void OnEnable() => screenLayout.Changed += Build;
 
         private void OnDisable() => screenLayout.Changed -= Build;
+
+        private PaletteColor LaneColor(int lane) => noteSpawner != null ? noteSpawner.LanePalette(lane) : PaletteColor.Cyan;
 
         private void Build()
         {
@@ -114,11 +144,15 @@ namespace PixelBeat.Gameplay
             int bottom = l.BottomPx;
             int height = l.HeightPx;
 
-            // Arka plan tüm ekranı (çentik altı dahil) kaplar; şerit paneli tam boy.
-            CreateRect("Background", root, l.LeftPx, bottom, l.RightPx - l.LeftPx, height, backgroundColor, -1);
-            CreateRect("Panel", root, FieldLeftPx, bottom, FieldWidthPx, height, panelColor, 0);
+            // Yarı saydam döşemeli şerit panelleri (arka plan altından görünür).
+            for (int i = 0; i < LaneCount; i++)
+            {
+                var panel = CreateSkinned($"Lane {i}", root, skin.LanePanel, SpriteDrawMode.Tiled,
+                    LaneLeftPx(i) + 1, bottom, laneWidthPx - 1, height, 0);
+                panel.color = new Color(1f, 1f, 1f, panelAlpha);
+            }
 
-            // Hold tutulurken parlayan şerit katmanı (panelin üstü, ayraç pikselleriyle çakışmaz).
+            // Hold tutulurken parlayan şerit katmanı.
             laneGlows = new SpriteRenderer[LaneCount];
             for (int i = 0; i < LaneCount; i++)
             {
@@ -132,20 +166,21 @@ namespace PixelBeat.Gameplay
             for (int i = 1; i < LaneCount; i++)
                 CreateRect($"Separator {i}", root, LaneLeftPx(i), bottom, 1, height, separatorColor, 1);
 
-            hitLine = CreateRect("Hit Line", root, FieldLeftPx, HitLineYPx - 1, FieldWidthPx, 2, hitLineColor, 2);
+            hitLine = CreateSkinned("Hit Line", root, skin.HitLineIdle, SpriteDrawMode.Sliced,
+                FieldLeftPx - 1, HitLineYPx - 1, FieldWidthPx + 2, 3, 3);
 
             // Dokunma göstergeleri: safe area altı ile vuruş çizgisi arası.
             int padY = l.SafeBottomPx + keyPadMarginPx;
-            int padH = Mathf.Max(4, HitLineYPx - keyPadMarginPx - padY);
+            int padH = Mathf.Max(8, HitLineYPx - keyPadMarginPx - padY);
             bool showKeyLabels = Application.isEditor && laneInput != null;
 
             keyBoxes = new SpriteRenderer[LaneCount];
             keyLabels = new SpriteRenderer[LaneCount];
             for (int i = 0; i < LaneCount; i++)
             {
-                int boxX = LaneLeftPx(i) + 2;
-                int boxW = laneWidthPx - 4;
-                keyBoxes[i] = CreateRect($"Key {i}", root, boxX, padY, boxW, padH, keyIdleColor, 3);
+                int boxX = LaneLeftPx(i) + 3;
+                int boxW = laneWidthPx - 5;
+                keyBoxes[i] = CreateSkinned($"Key {i}", root, skin.KeyPadIdle, SpriteDrawMode.Sliced, boxX, padY, boxW, padH, 3);
 
                 if (!showKeyLabels) continue;
                 string label = laneInput.GetKeyLabel(i);
@@ -167,29 +202,23 @@ namespace PixelBeat.Gameplay
             for (int i = 0; i < LaneCount; i++)
             {
                 bool held = laneInput != null && laneInput.IsHeld(i);
-                keyBoxes[i].color = held ? keyPressedColor : keyIdleColor;
+                keyBoxes[i].sprite = held ? skin.KeyPadPressed(LaneColor(i)) : skin.KeyPadIdle;
                 if (keyLabels[i] != null) keyLabels[i].color = held ? keyLabelPressedColor : keyLabelIdleColor;
 
                 bool holding = judgementSystem != null && judgementSystem.IsHolding(i);
                 laneGlows[i].enabled = holding;
-                if (holding && noteSpawner != null)
-                {
-                    var c = noteSpawner.LaneColor(i);
-                    c.a = holdGlowAlpha;
-                    laneGlows[i].color = c;
-                }
+                if (holding) laneGlows[i].color = Palette.Get(LaneColor(i), holdGlowAlpha);
             }
 
-            // Vuruş çizgisi her beat'te kısa parlar (ses-görüntü senkron kontrolü).
-            double beat = conductor != null && conductor.IsPlaying ? conductor.SongPositionBeats : -1;
-            if (beat < 0)
+            // Vuruş çizgisi: vuruşta ve her beat başında kısa süre parlak sprite (ses-görüntü senkron kontrolü).
+            hitFlashTimer = Mathf.Max(0f, hitFlashTimer - Time.unscaledDeltaTime);
+            bool bright = hitFlashTimer > 0f;
+            if (!bright && conductor != null && conductor.IsPlaying)
             {
-                hitLine.color = hitLineColor;
-                return;
+                double beat = conductor.SongPositionBeats;
+                bright = beat >= 0 && beat - System.Math.Floor(beat) < beatGlowBeats;
             }
-
-            float phase = (float)(beat - System.Math.Floor(beat));
-            hitLine.color = Color.Lerp(hitLineBeatColor, hitLineColor, phase / beatGlowBeats);
+            hitLine.sprite = bright ? skin.HitLineBeat : skin.HitLineIdle;
         }
     }
 }

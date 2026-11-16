@@ -17,15 +17,15 @@ namespace PixelBeat.UI
         [SerializeField] private Playfield playfield;
         [SerializeField] private ScreenLayout screenLayout;
 
-        [SerializeField] private Color overlayColor = new Color32(0x0B, 0x0B, 0x16, 0xF0);
-        [SerializeField] private Color failedColor = new Color32(0xFF, 0x40, 0x60, 0xFF);
-        [SerializeField] private Color textColor = new Color32(0x8A, 0x8A, 0xB0, 0xFF);
-        [SerializeField] private Color valueColor = new Color32(0xFF, 0xFF, 0xFF, 0xFF);
-        [SerializeField] private Color specialColor = new Color32(0xFF, 0xD0, 0x40, 0xFF);
-        [SerializeField] private Color perfectColor = new Color32(0x33, 0xFF, 0xFF, 0xFF);
-        [SerializeField] private Color greatColor = new Color32(0x66, 0xFF, 0x66, 0xFF);
-        [SerializeField] private Color goodColor = new Color32(0xFF, 0xD0, 0x40, 0xFF);
-        [SerializeField] private Color missColor = new Color32(0xFF, 0x40, 0x60, 0xFF);
+        [SerializeField] private PaletteRef overlayColor = new PaletteRef(PaletteColor.Void, 0.94f);
+        [SerializeField] private PaletteRef failedColor = PaletteColor.Red;
+        [SerializeField] private PaletteRef textColor = PaletteColor.Haze;
+        [SerializeField] private PaletteRef valueColor = PaletteColor.White;
+        [SerializeField] private PaletteRef specialColor = PaletteColor.Gold;
+        [SerializeField] private PaletteRef perfectColor = PaletteColor.Cyan;
+        [SerializeField] private PaletteRef greatColor = PaletteColor.Lime;
+        [SerializeField] private PaletteRef goodColor = PaletteColor.Gold;
+        [SerializeField] private PaletteRef missColor = PaletteColor.Red;
 
         private static readonly string[] Labels = { "PERFECT", "GREAT", "GOOD", "MISS" };
 

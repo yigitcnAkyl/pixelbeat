@@ -24,11 +24,11 @@ namespace PixelBeat.UI
         [Tooltip("Can bu değerin altına inince bar kırmızı olur.")]
         [SerializeField, Range(0, 100)] private int lowHealth = 30;
 
-        [SerializeField] private Color scoreColor = new Color32(0xFF, 0xFF, 0xFF, 0xFF);
-        [SerializeField] private Color comboColor = new Color32(0xFF, 0x40, 0xC0, 0xFF);
-        [SerializeField] private Color healthColor = new Color32(0x33, 0xFF, 0xFF, 0xFF);
-        [SerializeField] private Color lowHealthColor = new Color32(0xFF, 0x40, 0x60, 0xFF);
-        [SerializeField] private Color healthBackColor = new Color32(0x22, 0x22, 0x3A, 0xFF);
+        [SerializeField] private PaletteRef scoreColor = PaletteColor.White;
+        [SerializeField] private PaletteRef comboColor = PaletteColor.Magenta;
+        [SerializeField] private PaletteRef healthColor = PaletteColor.Cyan;
+        [SerializeField] private PaletteRef lowHealthColor = PaletteColor.Red;
+        [SerializeField] private PaletteRef healthBackColor = PaletteColor.Slate;
 
         private PixelText scoreText;
         private PixelText comboText;

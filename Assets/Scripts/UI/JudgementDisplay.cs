@@ -19,10 +19,10 @@ namespace PixelBeat.UI
         [SerializeField] private int releaseLineOffsetPx = 10;
         [SerializeField, Min(0.05f)] private float displaySec = 0.4f;
 
-        [SerializeField] private Color perfectColor = new Color32(0x33, 0xFF, 0xFF, 0xFF);
-        [SerializeField] private Color greatColor = new Color32(0x66, 0xFF, 0x66, 0xFF);
-        [SerializeField] private Color goodColor = new Color32(0xFF, 0xD0, 0x40, 0xFF);
-        [SerializeField] private Color missColor = new Color32(0xFF, 0x40, 0x60, 0xFF);
+        [SerializeField] private PaletteRef perfectColor = PaletteColor.Cyan;
+        [SerializeField] private PaletteRef greatColor = PaletteColor.Lime;
+        [SerializeField] private PaletteRef goodColor = PaletteColor.Gold;
+        [SerializeField] private PaletteRef missColor = PaletteColor.Red;
 
         private static readonly string[] Labels = { "PERFECT", "GREAT", "GOOD", "MISS" };
 

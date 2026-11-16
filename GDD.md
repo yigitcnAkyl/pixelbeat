@@ -94,7 +94,32 @@
 - **Sprite ayarları:** Filter Mode = Point, Compression = None, tüm sprite'larda aynı Pixels Per Unit.
 - **Yerleşim (öneri):** 4 şerit ekran genişliğini neredeyse doldurur (her biri ~40 px), vuruş çizgisi alttan ~%20 yukarıda, altında dokunma göstergeleri (basınca yanar). Üstte can barı ve skor, ortada combo/değerlendirme yazısı.
 - **Geri bildirim:** Vuruşta şerit parlaması, değerlendirme yazısı (PERFECT / GREAT / GOOD / MISS), combo sayacı.
-- Prototipte placeholder (basit renkli kare) sprite'lar yeterli. Gerçek pixel art sonra çizilecek.
+  - Vuruşta şeritte vuruş çizgisinden yukarı additive dither parlama + 1–2 px parçacıklar. Perfect: beyaz parlama, daha uzun (~0.18 sn), 10 parçacık (beyaz + şerit rengi); Great 6, Good 3 (şerit rengi); Miss yok. Hold bırakışında yarısı.
+- **Neon paleti (16 renk)** — tüm placeholder renkler buradan seçilir (kodda `PaletteColor` / `PaletteRef`, serbest renk girilemez):
+
+  | # | Ad | Hex | Kullanım |
+  |---|---|---|---|
+  | 0 | Void | `#0B0B16` | en koyu arka plan |
+  | 1 | Night | `#141428` | şerit paneli |
+  | 2 | Slate | `#22223A` | buton, can barı zemini |
+  | 3 | Steel | `#343448` | ayraç, gösterge çerçevesi |
+  | 4 | Ash | `#505068` | kaçan nota |
+  | 5 | Haze | `#8A8AB0` | soluk yazı, vuruş çizgisi |
+  | 6 | White | `#FFFFFF` | parlama, skor |
+  | 7 | Cyan | `#33FFFF` | şerit 0/3, Perfect |
+  | 8 | Teal | `#1C8C9C` | cyan gölge / hold gövdesi |
+  | 9 | Magenta | `#FF40C0` | şerit 1/2, combo |
+  | 10 | Plum | `#8E2470` | magenta gölge, ufuk |
+  | 11 | Violet | `#7A4DFF` | arka plan ızgarası |
+  | 12 | Lime | `#66FF66` | Great |
+  | 13 | Gold | `#FFD040` | Good, S derecesi, güneş |
+  | 14 | Orange | `#FF8A3D` | güneş |
+  | 15 | Red | `#FF4060` | Miss, FAILED, düşük can |
+- **Placeholder pixel art:** Editor'de kodla, sadece paletten üretilir (*PixelBeat > Bake Neon Sprites* → `Assets/Art/Neon/`, `Assets/Data/NeonSkin.asset`): nota başı, hold gövdesi/kuyruğu, nota halesi, dokunma göstergesi (boşta/basılı), vuruş çizgisi (normal/parlak), şerit paneli, şerit parlaması, parçacıklar, arka plan. 9-slice / döşeme ile boyutlanır (ölçekleme yok). Çok tonlu sprite'lar renk başına ayrı üretilir. PNG'ler elle çizilenlerle değiştirilebilir.
+- **Neon parlama:** Bloom kullanılmaz (pixel art'ı bulanıklaştırır, telefonda pahalı). Notaların ve parlamaların arkasında önceden çizilmiş dither'lı hale sprite'ları additive (`PixelBeat/SpriteAdditive`) çizilir.
+- **Arka plan:** Koyu gökyüzü + şeritli neon güneş + şehir silüeti (sprite, pivot = ufuk) ve ufuktan akan perspektifli neon ızgara çizgileri. Şerit paneli yarı saydam (arka plan altından görünür). AI ile çizilmiş görsel `NeonBackground > Background Sprite` alanına konarak değiştirilebilir.
+- **CRT:** Ekran çözünürlüğünde hafif scanline (her oyun pikseli satırının alt ~1/3'ü) + hafif vinyet. Aç/kapat: kalibrasyon ekranındaki "CRT" butonu (PlayerPrefs'e kaydedilir), varsayılan açık.
+- **AI görsel içe aktarma:** `Assets/Art/Incoming/` → *PixelBeat > AI Görsel İçe Aktar*: seçilen piksel boyutuna nearest-neighbor küçültme, palete indirgeme (OKLab'de en yakın renk, isteğe bağlı 2x2 Bayer dither), Point / sıkıştırmasız / PPU 16 sprite olarak `Assets/Art/Imported/`.
 
 ## 9. Ses
 - Telifsiz müzik kullanılacak. BPM bilgisi şarkının kaynağından alınır.
@@ -118,6 +143,6 @@ Prototip: **1 şarkı, sadece oynanış.** Menü, şarkı seçimi, kayıt yok.
 5. **Skor / combo / can:** Başarısızlık ve şarkı sonu sonuç yazısı. ✅
 6. **Otomatik beatmap üretici:** Editor aracı. ✅
    - Test şarkısı: `lumiere.mp3` (yerel, gitignore'da) → `lumiere.json` (zorluk 6, ipucu 161 BPM).
-7. **Neon görünüm:** Placeholder pixel art, efektler, geri bildirim.
+7. **Neon görünüm:** Placeholder pixel art, efektler, geri bildirim. ✅ (telefonda 60 FPS ölçümü bekliyor)
 
 Sonrası (prototip dışı): ana menü, şarkı seçimi, ayarlar ekranı, birden fazla zorluk, skor kaydı, Google Play yayını.

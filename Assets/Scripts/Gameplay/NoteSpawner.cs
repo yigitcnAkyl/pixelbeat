@@ -17,21 +17,22 @@ namespace PixelBeat.Gameplay
         [Tooltip("Nota hızı: bir notanın ekranın üstünden vuruş çizgisine gelme süresi (sn). Küçük = hızlı.")]
         [SerializeField, Range(0.3f, 3f)] private float scrollTimeSec = 1.0f;
 
-        [SerializeField] private int noteHeightPx = 4;
+        [Tooltip("Nota başı yüksekliği (piksel) — NeonSkin nota sprite'ı 6 px.")]
+        [SerializeField] private int noteHeightPx = 6;
         [Tooltip("Hold gövdesinin şerit kenarlarından içeri girintisi (piksel).")]
         [SerializeField] private int holdBodyInsetPx = 9;
-        [SerializeField] private int holdTailHeightPx = 2;
-        [Tooltip("Hold gövdesi rengi = şerit rengi x bu değer.")]
-        [SerializeField, Range(0.2f, 1f)] private float holdBodyBrightness = 0.55f;
-        [SerializeField] private Color[] laneColors =
+        [SerializeField] private int holdTailHeightPx = 3;
+        [Tooltip("Şerit renkleri (paletten; NeonSkin'de bu renklerin sprite'ları üretilmiş olmalı).")]
+        [SerializeField] private PaletteColor[] laneColors =
         {
-            new Color32(0x33, 0xFF, 0xFF, 0xFF),
-            new Color32(0xFF, 0x40, 0xC0, 0xFF),
-            new Color32(0xFF, 0x40, 0xC0, 0xFF),
-            new Color32(0x33, 0xFF, 0xFF, 0xFF),
+            PaletteColor.Cyan,
+            PaletteColor.Magenta,
+            PaletteColor.Magenta,
+            PaletteColor.Cyan,
         };
-        [SerializeField] private Color missedColor = new Color32(0x50, 0x50, 0x68, 0xFF);
-        [SerializeField] private Color missedBodyColor = new Color32(0x34, 0x34, 0x48, 0xFF);
+        [SerializeField] private PaletteColor missedColor = PaletteColor.Ash;
+        [Tooltip("Nota halesinin (additive) gücü.")]
+        [SerializeField, Range(0f, 1f)] private float glowAlpha = 0.35f;
 
         private ObjectPool<NoteView> pool;
         private readonly List<NoteView> active = new List<NoteView>();
@@ -42,7 +43,8 @@ namespace PixelBeat.Gameplay
         public int PoolInactiveCount => pool?.CountInactive ?? 0;
         public float ScrollTimeSec => scrollTimeSec;
 
-        public Color LaneColor(int lane) => laneColors[lane];
+        public Color LaneColor(int lane) => Palette.Get(laneColors[lane]);
+        public PaletteColor LanePalette(int lane) => laneColors[lane];
 
         private void Awake()
         {
@@ -65,7 +67,7 @@ namespace PixelBeat.Gameplay
             var go = new GameObject("Note");
             go.transform.SetParent(transform, false);
             var view = go.AddComponent<NoteView>();
-            view.Init(playfield.PixelSprite, 5);
+            view.Init(playfield.Skin, 5, glowAlpha);
             return view;
         }
 
@@ -122,10 +124,7 @@ namespace PixelBeat.Gameplay
                 }
 
                 bool missed = note.State == NoteState.Missed;
-                Color laneColor = laneColors[note.Lane];
-                Color bodyColor = laneColor * holdBodyBrightness;
-                bodyColor.a = 1f;
-                view.SetColors(missed ? missedColor : laneColor, missed ? missedBodyColor : bodyColor);
+                view.SetColor(missed ? missedColor : laneColors[note.Lane], missed);
                 view.Place(playfield.LaneLeftPx(note.Lane), laneW, headY, noteHeightPx, tailY, holdBodyInsetPx, holdTailHeightPx);
             }
         }

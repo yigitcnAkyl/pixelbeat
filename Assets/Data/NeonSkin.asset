@@ -1,0 +1,124 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df7ef116a2d97d14d8c72fed0cd5ba25, type: 3}
+  m_Name: NeonSkin
+  m_EditorClassIdentifier: Assembly-CSharp::PixelBeat.UI.NeonSkin
+  additive: {fileID: 2100000, guid: 101262eb34b7b094298802b50f971a6a, type: 2}
+  lanePanel: {fileID: 21300000, guid: 8c59883201e03894aaf87d87c684a3b3, type: 3}
+  hitLineIdle: {fileID: 21300000, guid: 95dde7a0f172bf34a8c3efd9f54250b4, type: 3}
+  hitLineBeat: {fileID: 21300000, guid: 39f59b08de26cc342a8720442fec0d22, type: 3}
+  keyPadIdle: {fileID: 21300000, guid: 1b508aae5ada7c64b9607b2f90180aa5, type: 3}
+  particle1: {fileID: 21300000, guid: d29179a6296e3f14e9ee21c414aa6780, type: 3}
+  particle2: {fileID: 21300000, guid: b50ac101d54b5284588e9776ec166cfa, type: 3}
+  sky: {fileID: 21300000, guid: e3ad1e9109c9b2b4e8bacf926eb34696, type: 3}
+  noteHead:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 20491d05b671c30439f19729f507cdba, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 8e27cc2b49d0e104e88a993afefb9a8b, type: 3}
+  - {fileID: 21300000, guid: 5070c11896005974d837806fc0bd8840, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 2f061314f7c4b6b4e81335b0522f167a, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 2fb3eeb83d0dfba459cb1f0923353160, type: 3}
+  - {fileID: 21300000, guid: 02fa2b48fe05cd54cb148adff33e90ee, type: 3}
+  - {fileID: 21300000, guid: 0acda777b0fd78f4e9a7d62c713305a3, type: 3}
+  - {fileID: 21300000, guid: 264821e2f7a7ee14cab6d8543a5a9346, type: 3}
+  - {fileID: 21300000, guid: 6a2b0504d04822144b0efa51bb5d8999, type: 3}
+  holdBody:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 77498b41a0ea7774b9fdcbdff43cb68d, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 1d7be94720060054ea48fc1131513866, type: 3}
+  - {fileID: 21300000, guid: 39f78290fba67244da904b9af14b15c4, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: aa835e87b79ba2c48a7f7976dc65f492, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 414b3944364e1f64b926c5f25d67a634, type: 3}
+  - {fileID: 21300000, guid: c3dc8438da93f63428618eef65a72007, type: 3}
+  - {fileID: 21300000, guid: 47d14453d6d57094cb609af04afc9f24, type: 3}
+  - {fileID: 21300000, guid: 9d2b0aedaa39c9a4fb1d7009445a4640, type: 3}
+  - {fileID: 21300000, guid: c6c47c806b379e14eaf6eb6b65b92e1d, type: 3}
+  holdTail:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: d4f427a1901a13c48a9e897c70706014, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 10018842777f93d45bd5227dc58ac8f6, type: 3}
+  - {fileID: 21300000, guid: 25c235e5b611f5f47a36ac95394ccb6d, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: d3587115154564646ad988ed9cd967d7, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 7c782f7bffbf782489cac82040659fb1, type: 3}
+  - {fileID: 21300000, guid: 4be9891a3b241594ca873b6459612b05, type: 3}
+  - {fileID: 21300000, guid: e00bb8df8efdff0419bafe1bd72ea4ec, type: 3}
+  - {fileID: 21300000, guid: 0cd28aded15a631488c07d2ac6a200b9, type: 3}
+  - {fileID: 21300000, guid: 5ae5ce60df11c264eb62d9b4a009afdd, type: 3}
+  noteGlow:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 44c5518584c954441ae7c8ab129446d2, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 969085d0bf443c2499f0fa2d395163c7, type: 3}
+  - {fileID: 21300000, guid: 8ed759a3b9ff5c4478303245f8638265, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 04074ca710d430447b49b72e18723971, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: f0d4ce10b784f1a4cba125e00fee1703, type: 3}
+  - {fileID: 21300000, guid: 953b79a004a9fce4c8dad51aeebf98cc, type: 3}
+  - {fileID: 21300000, guid: bc5d97a3c0da39c4b9cd6d43e728174d, type: 3}
+  - {fileID: 21300000, guid: 25b8afe9e2c62b64c8c04d14175a54d7, type: 3}
+  - {fileID: 21300000, guid: 25e82e7a0d0ceb94394c0d487a91dbf5, type: 3}
+  keyPadPressed:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: e93e42755f705ab46b8ce742e4fcd46f, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 62ed5d470e9e7ee4c90a677180f801e7, type: 3}
+  - {fileID: 21300000, guid: 14f11044620924a4dbb81237076c828f, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: bf2f78294047ea947b3f5b6942ad5c74, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: cdc61af468a917d40bfc6212c4486c7f, type: 3}
+  - {fileID: 21300000, guid: 086eabee2a857ca48bc289d014fd19a4, type: 3}
+  - {fileID: 21300000, guid: 8d5947caeccbeac49ba055ff6a527cfe, type: 3}
+  - {fileID: 21300000, guid: f6fdaeaa9fe7e014a8dd7a3fc8fac7db, type: 3}
+  - {fileID: 21300000, guid: 5bc5db62d9e0b1c4ba0f28aefd960204, type: 3}
+  laneFlash:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 2968bbad783b78c42b3093bb7df5d2ec, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: b1ff098e79025454f96d390c6e133166, type: 3}
+  - {fileID: 21300000, guid: 42cf4368e16401c4f9bc11badf33a008, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 06d18a1c3bef10646b8cb467f2edb625, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 97b9271bbaf4696418b940b5c6632e9f, type: 3}
+  - {fileID: 21300000, guid: d20df22fca17b4147a78e7e56ec8af96, type: 3}
+  - {fileID: 21300000, guid: d563f58a63ed94e4992f72b9a23f3c8c, type: 3}
+  - {fileID: 21300000, guid: 376d39e0b9ca1f647906f19ad5f7e2d8, type: 3}
+  - {fileID: 21300000, guid: 0fededb2b5d87b94a9796450ae6144bc, type: 3}
