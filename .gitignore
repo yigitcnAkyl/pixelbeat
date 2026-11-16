@@ -69,3 +69,8 @@ Thumbs.db
 /.utmp/
 # Claude yerel izinleri (kişisel)
 /.claude/settings.local.json
+# Lumière stem'leri ve vokal MIDI (telifli, yerel test)
+/Assets/Audio/Stems/
+/Assets/Audio/Stems.meta
+/Assets/Audio/Midi/lumiere_vocals.mid
+/Assets/Audio/Midi/lumiere_vocals.mid.meta

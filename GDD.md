@@ -77,7 +77,7 @@
     Boşsa sabit tempo: zaman = `offset` + beat × 60/`bpm` (elle yazılan haritalar).
   - Notalar: `lane` (0–3), `beat` (başlangıç, beat cinsinden, kesirli olabilir: 12.5 = 1/2, 12.25 = 1/4), `lengthBeats` (0 = tap, >0 = hold).
 - Beat cinsinden tutulur, böylece tempo ızgarasına oturur ve elle düzeltmek kolaydır.
-- Çalınacak beatmap ve şarkı (AudioClip) `SongLoader`'da Inspector'dan seçilir: **Zorluk** = Özel (tek beatmap: ritim modu / elle yazılmış) ya da Kolay / Normal / Zor (melodi modu haritaları için üç ayrı alan). Şarkı yoksa beatmap'in beat'lerinde metronom tıkı çalar; "beat tıkı ekle" seçeneği şarkının üstüne tık ekler (beat takibini kulakla kontrol için).
+- Çalınacak beatmap ve şarkı (AudioClip) `SongLoader`'da Inspector'dan seçilir: **Zorluk** = Özel (tek beatmap: ritim modu / elle yazılmış) ya da Kolay / Normal / Zor; Kolay/Normal/Zor'da **Harita türü** = Melodi (§7.1) ya da Vokal (§7.2), her tür için üç ayrı alan. Şarkı yoksa beatmap'in beat'lerinde metronom tıkı çalar; "beat tıkı ekle" seçeneği şarkının üstüne tık ekler (beat takibini kulakla kontrol için).
 - **Otomatik üretici (Editor aracı, *PixelBeat > Beatmap Üretici*):** Ses dosyası + zorluk (1–10) + isteğe bağlı BPM ipucu →
   - Sabit BPM varsayılmaz: spektral akıdan onset gücü → otokorelasyonla tempo (ipucu yarım/iki kat karışıklığını önler) → ~8 sn pencerelerde yerel tempo → dinamik programlamayla beat takibi. Sonuç `beatTimes`'a yazılır.
   - Onset tespiti yapılır, sonuçlar beat ızgarasına (1/1, 1/2, 1/4) oturtulur. Kolay: 1/1 + güçlü 1/2; orta: 1/2; zor (8+): 1/4.
@@ -110,6 +110,28 @@ Beat tabanlı üretim notaları ritme oturtur ama melodik şarkılarda "duyduğu
   - Nota zamanı = MIDI zamanı + offset; beat ızgarasına oturtulmaz, şarkının beat zamanlarına göre kesirli beat'e çevrilir.
   - Lumiere (Basic Pitch, 2181 nota → melodi hattı 623): Kolay 323 nota (1.5/sn), Normal 458 (2.1/sn), Zor 594 (2.7/sn, 29 akor). Normal ilk notalar 0.95, 1.31, 2.42 sn.
 - **Sonraki iş — Kayıt modu:** Şarkı çalarken kullanıcı melodiye dokunur, dokunuşlar notaya dönüşür; otomatik haritadaki hatalar böyle düzeltilir.
+
+### 7.2 Vokal modu — sözlere göre nota (tercih edilen, vokalli şarkılarda)
+Oyuncu ritmi çoğunlukla **sözlerden/şarkıcının sesinden** takip eder (kullanıcı testi: masaya vururken vokali takip etti). Bu yüzden vokalli şarkılarda notalar **söylenen hecelere** konur.
+- **Girdiler:** Orijinal şarkı (oyunda çalan), **vokal stem'i** (Moises ile ayrıldı), vokal stem'inden Basic Pitch ile çıkarılmış **vokal MIDI**, isteğe bağlı **enstrüman stem'i** ("other") ve tam mix MIDI'si (§7.1).
+  Lumière: `Assets/Audio/Stems/lumiere_vocals.mp3`, `Assets/Audio/Stems/lumiere_other.mp3`, `Assets/Audio/Midi/lumiere_vocals.mid` (532 nota), `Assets/Audio/Midi/lumiere_basicpitch.mid` (tam mix).
+- **Vokal kapısı:** Stem ayrımı kusursuz değil; vokal MIDI'sinde şarkıcı susarken de "sızıntı" notalar olur (Lumière'de 532 notanın ~120'si vokal bölümlerinin dışında). Vokal stem'inin ses enerjisinden **vokal aktif bölümleri** çıkarılır, dışındaki vokal notaları atılır.
+  Lumière için ölçülen vokal bölümleri yaklaşık **8–122 sn** ve **147–196 sn**.
+- **Hece bölme:** Basic Pitch aynı perdede art arda söylenen heceleri tek uzun nota yapabilir. Vokal stem'indeki onset'lere bakılarak uzun notalar hecelere bölünür (bölünen parçalar tap olur; gerçekten uzatılan hece hold kalır).
+- **Tek ses:** Vokal tek sesli olduğundan skyline/bas filtresi gerekmez; perde konturu → şerit eşlemesi (§7.1) aynen kullanılır.
+- **Kaynak önceliği (karışma yok):** Vokal aktif bölümlerde notalar **sadece vokalden** gelir; o bölümlerde enstrüman ("other"/tam mix) notası **hiç** eklenmez, şarkıcı hece arasında nefes alırken de. Enstrüman notaları **yalnızca** vokalin uzun süre (≥ ~4 sn) sustuğu yerlerde kullanılır. Kısa vokal duraklamaları (nefes, cümle arası < ~4 sn) boş kalır — bunlar müzikal "dinlenme"dir.
+  Geçiş sınırlarında iki kaynağın notaları üst üste binmez; sınırın iki yanında en az ~0.5 sn boşluk bırakılır.
+- **Enstrümantal aralar:** Vokalin olmadığı bölümler (Lumière'de ~0–8, ~122–147, ~196–222 sn) boş kalmaz; buralara §7.1 melodi modunun ürettiği notalar (tam mix ya da "other" stem'i) yerleştirilir. Geçişlerde ani yoğunluk sıçraması olmamalı.
+- **Yoğunluk/zorluk:** §7.1'deki hedefler geçerli; vokal hece hızı yeterli değilse zorluk farkı akor ve min. boşlukla verilir.
+- Oyunda çalan ses yine **orijinal şarkı**dır; stem'ler sadece analiz içindir.
+- **Uygulama (Beatmap Üretici → Mod: Vokal):** orijinal şarkı + vokal stem'i + vokal MIDI + tam mix MIDI → `<ad>_vocal_easy|normal|hard.json`. Kesinleşen değerler:
+  - Kapı: 50 ms RMS zarfı, eşik = zarfın %95'liğinin 30 dB altı (göreli), < 1.5 sn susmalar birleşir, < 1 sn bölümler atılır, kenarlara 0.15 sn pay. Başlangıcı bölüm dışında olan vokal notası atılır.
+  - Tek ses: veride vokal MIDI'si tam tek sesli değil (aynı anda başlayan notalar, oktav hataları). 60 ms içinde başlayanlardan **önceki notaya perdece en yakını** kalır (eşitlikte velocity); yerel medyandan (±3 sn) bir oktavdan fazla sapan perde atılır.
+  - Hece bölme: ≥ 0.3 sn notalar, vokal stem onset'lerinde bölünür (notanın ilk/son 80 ms'i hariç, parça ≥ 0.12 sn). Son olmayan parçalar tap, son parça hold eşiğini geçerse hold.
+  - Vokal bölgesi = vokal bölümleri + hecelerin kapladığı süre, **4 sn'den kısa boşluklar dahil** tek bölge. Enstrüman dolgusu sadece bölgeler dışında, sınırlardan **0.5 sn** içeride (dolgu hold'u da sınırda kesilir).
+  - Dolgu: tam mix'in §7.1 melodi hattı, 1 sn pencerelerle seyreltilir; hedef yoğunluk sınırda komşu vokal yoğunluğundan (sınırın dışındaki 4 sn) başlar, 10 sn'de zorluk hedefine çıkar. Dolguda cümle başı eşiği 2 sn (sık cümle başı sıçrama yapmasın).
+  - Akor (Zor): vokal bölgesinde **vurgulu hecenin kendisi** ikinci şeride (cümle başı ya da velocity %70'liğin üstü); enstrüman notası kullanılmaz. Dolguda §7.1 kuralı. Toplam pay %10.
+  - Lumière: kapı 5.9–122.2 ve 147.3–196.5 sn (6.0 sn'de vokal stem'inde güçlü bir giriş hecesi var, ölçümdeki ~8 sn'den erken), kapı dışı 121 nota atıldı, 41 nota → 382 hece. Kolay 283 nota (vokal 223 / enstrüman 60), Normal 356 (281 / 75), Zor 474 (382 / 92, 43 akor). Geçişlerde komşu 4 sn yoğunluk farkı ≤ 0.7 nota/sn.
 
 ## 8. Görsel / Teknik
 - **Çözünürlük (dikey):** Genişlik **180 px sabit**, yükseklik telefonun en-boy oranına göre uzar (16:9'da 320, uzun telefonlarda ~360–400). Pixel Perfect Camera ile tam sayı büyütme (1080 px genişlikli telefonda 6x). Önemli öğeler (şeritler, vuruş çizgisi) güvenli alanda kalmalı; çentik/kamera deliği için Screen.safeArea dikkate alınır.
@@ -166,7 +188,8 @@ Prototip: **1 şarkı, sadece oynanış.** Menü, şarkı seçimi, kayıt yok.
 5. **Skor / combo / can:** Başarısızlık ve şarkı sonu sonuç yazısı. ✅
 6. **Otomatik beatmap üretici:** Editor aracı. ✅
    - Test şarkısı: `lumiere.mp3` (yerel, gitignore'da) → `lumiere.json` (zorluk 6, ipucu 161 BPM).
-   - Melodi modu (§7.1): `lumiere.mp3` + `lumiere_basicpitch.mid` (yerel) → `lumiere_easy/normal/hard.json`; sahnede Normal seçili. ✅
+   - Melodi modu (§7.1): `lumiere.mp3` + `lumiere_basicpitch.mid` (yerel) → `lumiere_easy/normal/hard.json`. ✅
+   - Vokal modu (§7.2): + `lumiere_vocals.mp3` + `lumiere_vocals.mid` (yerel) → `lumiere_vocal_easy/normal/hard.json`; sahnede Vokal / Normal seçili. ✅
 7. **Neon görünüm:** Placeholder pixel art, efektler, geri bildirim. ✅ (telefonda build/FPS testi bekliyor (Unity Hub tamamen yeniden başlatılınca yapılacak))
 
 Sonrası (prototip dışı): ana menü, şarkı seçimi, ayarlar ekranı, birden fazla zorluk, skor kaydı, Google Play yayını.

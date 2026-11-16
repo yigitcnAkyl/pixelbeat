@@ -5,13 +5,20 @@ using UnityEngine.InputSystem;
 
 namespace PixelBeat.Gameplay
 {
-    /// <summary>SongLoader'ın çalacağı harita: Özel (tek beatmap) ya da melodi modu zorlukları.</summary>
+    /// <summary>SongLoader'ın çalacağı harita: Özel (tek beatmap) ya da üretilmiş haritaların zorlukları.</summary>
     public enum SongDifficulty
     {
         Custom,
         Easy,
         Normal,
         Hard,
+    }
+
+    /// <summary>Üretilmiş harita türü: melodi modu (GDD §7.1) ya da vokal modu (§7.2).</summary>
+    public enum MapType
+    {
+        Melody,
+        Vocal,
     }
 
     /// <summary>
@@ -26,12 +33,20 @@ namespace PixelBeat.Gameplay
         [SerializeField] private NoteSpawner noteSpawner;
 
         [Header("Çalınacak şarkı")]
-        [Tooltip("Özel: tek beatmap (ritim modu / elle yazılmış). Kolay/Normal/Zor: melodi modu haritaları.")]
+        [Tooltip("Özel: tek beatmap (ritim modu / elle yazılmış). Kolay/Normal/Zor: harita türüne göre üretilmiş haritalar.")]
         [SerializeField] private SongDifficulty difficulty = SongDifficulty.Custom;
+        [Tooltip("Kolay/Normal/Zor seçiliyken: Melodi (§7.1) ya da Vokal (§7.2) haritaları.")]
+        [SerializeField] private MapType mapType = MapType.Melody;
         [SerializeField] private TextAsset beatmapJson;
+        [Header("Melodi modu haritaları")]
         [SerializeField] private TextAsset easyBeatmap;
         [SerializeField] private TextAsset normalBeatmap;
         [SerializeField] private TextAsset hardBeatmap;
+        [Header("Vokal modu haritaları")]
+        [SerializeField] private TextAsset vocalEasyBeatmap;
+        [SerializeField] private TextAsset vocalNormalBeatmap;
+        [SerializeField] private TextAsset vocalHardBeatmap;
+        [Space]
         [Tooltip("Şarkı. Boşsa beatmap'in beat'lerinde tık çalan metronom kullanılır.")]
         [SerializeField] private AudioClip musicClip;
         [Tooltip("Şarkının üstüne beatmap'in beat'lerinde tık çal (beat takibini kulakla kontrol etmek için).")]
@@ -46,16 +61,18 @@ namespace PixelBeat.Gameplay
         public Beatmap CurrentBeatmap { get; private set; }
 
         public SongDifficulty Difficulty => difficulty;
+        public MapType MapType => mapType;
 
         private TextAsset SelectedBeatmap
         {
             get
             {
+                bool vocal = mapType == MapType.Vocal;
                 switch (difficulty)
                 {
-                    case SongDifficulty.Easy: return easyBeatmap;
-                    case SongDifficulty.Normal: return normalBeatmap;
-                    case SongDifficulty.Hard: return hardBeatmap;
+                    case SongDifficulty.Easy: return vocal ? vocalEasyBeatmap : easyBeatmap;
+                    case SongDifficulty.Normal: return vocal ? vocalNormalBeatmap : normalBeatmap;
+                    case SongDifficulty.Hard: return vocal ? vocalHardBeatmap : hardBeatmap;
                     default: return beatmapJson;
                 }
             }
@@ -117,7 +134,7 @@ namespace PixelBeat.Gameplay
             var json = SelectedBeatmap;
             if (json == null)
             {
-                Debug.LogError($"[SongLoader] {difficulty} beatmap'i atanmamış.");
+                Debug.LogError($"[SongLoader] {(difficulty == SongDifficulty.Custom ? "" : mapType + " / ")}{difficulty} beatmap'i atanmamış.");
                 return;
             }
 

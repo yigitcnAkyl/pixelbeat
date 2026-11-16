@@ -22,6 +22,7 @@ namespace PixelBeat.EditorTools.BeatmapGen
         {
             Ritim,
             Melodi,
+            Vokal,
         }
 
         [SerializeField] private Mode mode = Mode.Melodi;
@@ -37,9 +38,13 @@ namespace PixelBeat.EditorTools.BeatmapGen
         [SerializeField] private int minPitch = 48;
         [SerializeField] private bool makeEasy = true, makeNormal = true, makeHard = true;
 
+        [SerializeField] private AudioClip vocalStem;
+        [SerializeField] private Object vocalMidiAsset;
+
         private string summary = "";
         private string lastPath;
         private readonly Dictionary<MelodyDifficulty, string> lastMelodyPaths = new Dictionary<MelodyDifficulty, string>();
+        private readonly Dictionary<MelodyDifficulty, string> lastVocalPaths = new Dictionary<MelodyDifficulty, string>();
         private Vector2 scroll;
 
         [MenuItem("PixelBeat/Beatmap Üretici")]
@@ -47,7 +52,8 @@ namespace PixelBeat.EditorTools.BeatmapGen
 
         private void OnGUI()
         {
-            mode = (Mode)EditorGUILayout.EnumPopup(new GUIContent("Mod", "Melodi: MIDI melodisinden (tercih edilen). Ritim: sadece sesten, beat ızgarasına."), mode);
+            mode = (Mode)EditorGUILayout.EnumPopup(new GUIContent("Mod",
+                "Vokal: sözlere göre (vokalli şarkılarda tercih edilen). Melodi: MIDI melodisinden. Ritim: sadece sesten, beat ızgarasına."), mode);
 
             EditorGUI.BeginChangeCheck();
             clip = (AudioClip)EditorGUILayout.ObjectField("Ses dosyası", clip, typeof(AudioClip), false);
@@ -58,11 +64,19 @@ namespace PixelBeat.EditorTools.BeatmapGen
             }
 
             bool midiOk = true;
-            if (mode == Mode.Melodi)
+            if (mode == Mode.Vokal)
             {
-                midiAsset = EditorGUILayout.ObjectField(new GUIContent("MIDI dosyası", ".mid (ör. Basic Pitch çıktısı, kayıtla hizalı)"), midiAsset, typeof(Object), false);
-                midiOk = IsMidi(midiAsset);
-                if (midiAsset != null && !midiOk) EditorGUILayout.HelpBox("Seçilen dosya .mid / .midi değil.", MessageType.Warning);
+                vocalStem = (AudioClip)EditorGUILayout.ObjectField(new GUIContent("Vokal stem'i", "Sadece analiz (kapı + hece onset'leri); oyunda orijinal şarkı çalar."), vocalStem, typeof(AudioClip), false);
+                vocalMidiAsset = EditorGUILayout.ObjectField(new GUIContent("Vokal MIDI", "Vokal stem'inden Basic Pitch ile"), vocalMidiAsset, typeof(Object), false);
+                if (vocalMidiAsset != null && !IsMidi(vocalMidiAsset)) EditorGUILayout.HelpBox("Vokal MIDI .mid / .midi değil.", MessageType.Warning);
+                midiOk = vocalStem != null && IsMidi(vocalMidiAsset);
+            }
+            if (mode != Mode.Ritim)
+            {
+                string midiLabel = mode == Mode.Vokal ? "Tam mix MIDI (aralar)" : "MIDI dosyası";
+                midiAsset = EditorGUILayout.ObjectField(new GUIContent(midiLabel, ".mid (ör. Basic Pitch çıktısı, kayıtla hizalı)"), midiAsset, typeof(Object), false);
+                midiOk &= IsMidi(midiAsset);
+                if (midiAsset != null && !IsMidi(midiAsset)) EditorGUILayout.HelpBox("Seçilen dosya .mid / .midi değil.", MessageType.Warning);
                 offsetMs = EditorGUILayout.FloatField(new GUIContent("Offset (ms)", "Tüm notalara eklenir (MIDI kayıtla tam hizalı değilse)."), offsetMs);
                 minPitch = EditorGUILayout.IntSlider(new GUIContent("Alt perde sınırı", "Bunun altındaki MIDI notaları melodi olamaz (48 = C3)."), minPitch, 0, 127);
                 using (new EditorGUILayout.HorizontalScope())
@@ -81,23 +95,26 @@ namespace PixelBeat.EditorTools.BeatmapGen
             bpmHint = EditorGUILayout.FloatField(new GUIContent("BPM ipucu", "0 = otomatik. Yarım / iki kat tempo karışıklığını önler."), bpmHint);
             songTitle = EditorGUILayout.TextField("Başlık", songTitle);
             artist = EditorGUILayout.TextField("Sanatçı", artist);
-            string nameTip = mode == Mode.Melodi ? $"{OutputFolder}/<ad>_easy|normal|hard.json" : $"{OutputFolder}/<ad>.json";
+            string nameTip = mode == Mode.Melodi ? $"{OutputFolder}/<ad>_easy|normal|hard.json"
+                : mode == Mode.Vokal ? $"{OutputFolder}/<ad>_vocal_easy|normal|hard.json" : $"{OutputFolder}/<ad>.json";
             fileName = EditorGUILayout.TextField(new GUIContent("Dosya adı", nameTip), fileName);
 
             EditorGUILayout.Space();
             bool anyDifficulty = makeEasy || makeNormal || makeHard;
             bool canGenerate = clip != null && !string.IsNullOrWhiteSpace(fileName)
-                               && (mode == Mode.Ritim || (midiAsset != null && midiOk && anyDifficulty));
+                               && (mode == Mode.Ritim || (midiOk && anyDifficulty));
             using (new EditorGUI.DisabledScope(!canGenerate))
             {
                 if (GUILayout.Button("Üret", GUILayout.Height(30)))
                 {
                     if (mode == Mode.Melodi) GenerateMelody();
+                    else if (mode == Mode.Vokal) GenerateVocal();
                     else GenerateRhythm();
                 }
             }
 
-            bool hasOutput = mode == Mode.Melodi ? lastMelodyPaths.Count > 0 : !string.IsNullOrEmpty(lastPath);
+            bool hasOutput = mode == Mode.Ritim ? !string.IsNullOrEmpty(lastPath)
+                : mode == Mode.Melodi ? lastMelodyPaths.Count > 0 : lastVocalPaths.Count > 0;
             using (new EditorGUI.DisabledScope(!hasOutput))
             {
                 if (GUILayout.Button("Sahneye ata (SongLoader: beatmap + şarkı)")) AssignToScene();
@@ -184,6 +201,98 @@ namespace PixelBeat.EditorTools.BeatmapGen
 
                 summary = sb.ToString().TrimEnd();
                 Debug.Log($"[Beatmap Üretici] Melodi modu\n{summary}");
+                if (first != null) EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<TextAsset>(first));
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
+        }
+
+        // ---------- Vokal modu ----------
+
+        /// <summary>Vokal stem'i → vokal bölümleri (kapı) + onset zamanları (hece bölme).</summary>
+        public static void AnalyzeVocalStem(float[] interleaved, int channels, int rate, out List<Vocal.Span> sections, out List<double> onsets)
+        {
+            var mono = AudioPrep.ToMonoDownsampled(interleaved, channels, rate, out int monoRate);
+            sections = Vocal.VocalGate.Detect(mono, monoRate);
+            var a = SpectralAnalysis.Analyze(mono, monoRate);
+            var o = TempoTracker.NormalizeOnset(a.Flux, a.FrameRate);
+            onsets = new List<double>();
+            foreach (var onset in OnsetPicker.Pick(a, o)) onsets.Add(onset.Time);
+        }
+
+        private void GenerateVocal()
+        {
+            const string title = "Beatmap Üretici (vokal)";
+            try
+            {
+                if (!ReadSamples(clip, out var samples, out int channels, out int rate)) return;
+                var beatTimes = BeatmapGenerator.AnalyzeBeatTimes(samples, channels, rate, bpmHint,
+                    (p, label) => EditorUtility.DisplayProgressBar(title, label, p * 0.5f));
+                double songDuration = samples.Length / (double)channels / rate;
+
+                EditorUtility.DisplayProgressBar(title, "Vokal stem'i (kapı + onset)", 0.55f);
+                if (!ReadSamples(vocalStem, out var vSamples, out int vChannels, out int vRate)) return;
+                AnalyzeVocalStem(vSamples, vChannels, vRate, out var sections, out var onsets);
+
+                EditorUtility.DisplayProgressBar(title, "MIDI", 0.8f);
+                var vocalMidi = MidiReader.Read(File.ReadAllBytes(AssetDatabase.GetAssetPath(vocalMidiAsset)));
+                var mixMidi = MidiReader.Read(File.ReadAllBytes(AssetDatabase.GetAssetPath(midiAsset)));
+                var instrumentLine = MelodyExtractor.Extract(mixMidi.Notes, new MelodyExtractSettings { MinPitch = minPitch });
+
+                var input = new Vocal.VocalInputs
+                {
+                    VocalMidi = vocalMidi.Notes,
+                    Sections = sections,
+                    VocalOnsets = onsets,
+                    InstrumentLine = instrumentLine,
+                    BeatTimes = beatTimes,
+                    SongDurationSec = songDuration,
+                    OffsetSec = offsetMs / 1000.0,
+                };
+
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine($"Vokal bölümleri (kapı): {string.Join(", ", sections)} sn");
+                sb.AppendLine($"Vokal onset: {onsets.Count}, vokal MIDI: {vocalMidi.Notes.Count} nota, tam mix melodi hattı: {instrumentLine.Count} nota");
+                lastVocalPaths.Clear();
+                string first = null;
+                bool statsShown = false;
+
+                foreach (var d in new[] { MelodyDifficulty.Easy, MelodyDifficulty.Normal, MelodyDifficulty.Hard })
+                {
+                    if ((d == MelodyDifficulty.Easy && !makeEasy) || (d == MelodyDifficulty.Normal && !makeNormal) ||
+                        (d == MelodyDifficulty.Hard && !makeHard))
+                        continue;
+                    EditorUtility.DisplayProgressBar(title, d.ToString(), 0.9f);
+
+                    var preset = MelodyPreset.For(d);
+                    var r = Vocal.VocalGenerator.Generate(input, preset);
+                    if (!statsShown)
+                    {
+                        sb.AppendLine($"Kapı dışı atılan: {r.GatedOut}, aynı anda (perdece uzak) atılan: {r.SimultaneousDropped}, aykırı perde: {r.OutliersDropped}");
+                        sb.AppendLine($"Hecelere bölünen nota: {r.SplitNotes} → {r.Syllables} hece");
+                        sb.AppendLine($"Vokal bölgeleri (< {Vocal.VocalGenerator.FillMinSilenceSec:0} sn boşluklar dahil): {string.Join(", ", r.VocalRegions)}");
+                        sb.AppendLine($"Enstrüman dolgu aralıkları: {string.Join(", ", r.FillRegions)}");
+                        statsShown = true;
+                    }
+
+                    string path = $"{OutputFolder}/{fileName.Trim()}_vocal_{preset.Suffix}.json";
+                    var issues = Write(path, ToBeatmap(r.Map, $"Vokal {preset.Label}"));
+                    lastVocalPaths[d] = path;
+                    first = first ?? path;
+
+                    sb.AppendLine();
+                    sb.AppendLine($"== {preset.Label} → {path}");
+                    sb.AppendLine($"Kaynak: vokal {r.VocalNotes}, enstrüman {r.InstrumentNotes}");
+                    var tr = new List<string>();
+                    foreach (var (time, before, after) in r.Transitions) tr.Add($"{time:0.0} sn: {before:0.0}→{after:0.0}");
+                    if (tr.Count > 0) sb.AppendLine($"Geçişler (önceki/sonraki 4 sn nota/sn): {string.Join(", ", tr)}");
+                    sb.Append(BuildSummary(r.Map, issues, preset));
+                }
+
+                summary = sb.ToString().TrimEnd();
+                Debug.Log($"[Beatmap Üretici] Vokal modu\n{summary}");
                 if (first != null) EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<TextAsset>(first));
             }
             finally
@@ -295,14 +404,17 @@ namespace PixelBeat.EditorTools.BeatmapGen
             }
 
             var so = new SerializedObject(loader);
-            if (mode == Mode.Melodi)
+            if (mode != Mode.Ritim)
             {
-                Set(so, "easyBeatmap", MelodyDifficulty.Easy);
-                Set(so, "normalBeatmap", MelodyDifficulty.Normal);
-                Set(so, "hardBeatmap", MelodyDifficulty.Hard);
-                so.FindProperty("difficulty").enumValueIndex = lastMelodyPaths.ContainsKey(MelodyDifficulty.Normal)
+                bool vocal = mode == Mode.Vokal;
+                var paths = vocal ? lastVocalPaths : lastMelodyPaths;
+                Set(so, vocal ? "vocalEasyBeatmap" : "easyBeatmap", paths, MelodyDifficulty.Easy);
+                Set(so, vocal ? "vocalNormalBeatmap" : "normalBeatmap", paths, MelodyDifficulty.Normal);
+                Set(so, vocal ? "vocalHardBeatmap" : "hardBeatmap", paths, MelodyDifficulty.Hard);
+                so.FindProperty("mapType").enumValueIndex = (int)(vocal ? MapType.Vocal : MapType.Melody);
+                so.FindProperty("difficulty").enumValueIndex = paths.ContainsKey(MelodyDifficulty.Normal)
                     ? (int)SongDifficulty.Normal
-                    : (int)SongDifficulty.Easy + (int)FirstKey();
+                    : (int)SongDifficulty.Easy + (int)FirstKey(paths);
             }
             else
             {
@@ -312,19 +424,21 @@ namespace PixelBeat.EditorTools.BeatmapGen
             so.FindProperty("musicClip").objectReferenceValue = clip;
             so.ApplyModifiedProperties();
             EditorSceneManager.MarkSceneDirty(loader.gameObject.scene);
-            Debug.Log($"[Beatmap Üretici] SongLoader → {(mode == Mode.Melodi ? string.Join(", ", lastMelodyPaths.Values) : lastPath)} + {clip.name}. Sahneyi kaydetmeyi unutma.");
+            string assigned = mode == Mode.Ritim ? lastPath
+                : string.Join(", ", (mode == Mode.Vokal ? lastVocalPaths : lastMelodyPaths).Values);
+            Debug.Log($"[Beatmap Üretici] SongLoader → {assigned} + {clip.name}. Sahneyi kaydetmeyi unutma.");
         }
 
-        private void Set(SerializedObject so, string property, MelodyDifficulty d)
+        private static void Set(SerializedObject so, string property, Dictionary<MelodyDifficulty, string> paths, MelodyDifficulty d)
         {
-            if (lastMelodyPaths.TryGetValue(d, out var path))
+            if (paths.TryGetValue(d, out var path))
                 so.FindProperty(property).objectReferenceValue = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
         }
 
-        private MelodyDifficulty FirstKey()
+        private static MelodyDifficulty FirstKey(Dictionary<MelodyDifficulty, string> paths)
         {
             foreach (var d in new[] { MelodyDifficulty.Easy, MelodyDifficulty.Normal, MelodyDifficulty.Hard })
-                if (lastMelodyPaths.ContainsKey(d)) return d;
+                if (paths.ContainsKey(d)) return d;
             return MelodyDifficulty.Easy;
         }
     }

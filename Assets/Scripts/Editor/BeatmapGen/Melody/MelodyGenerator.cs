@@ -57,7 +57,19 @@ namespace PixelBeat.EditorTools.BeatmapGen.Melody
         public static GeneratorResult Generate(IReadOnlyList<MelodyNote> melody, IReadOnlyList<double> beatTimes,
             MelodyPreset preset, double offsetSec = 0)
         {
-            var result = new GeneratorResult { CandidateCount = melody.Count };
+            var result = NewResult(beatTimes, melody.Count, out var tempo);
+            if (tempo == null) return result;
+
+            var thinned = MelodyThinner.Thin(melody, preset.TargetNps, preset.MinGapSec);
+            BuildFromLine(thinned, tempo, preset, offsetSec, result, AssignChords);
+            return result;
+        }
+
+        /// <summary>Beat zamanları ve tempo istatistikleriyle boş sonuç; beat yoksa tempo null ve uyarı.</summary>
+        public static GeneratorResult NewResult(IReadOnlyList<double> beatTimes, int candidateCount, out TempoMap tempo)
+        {
+            var result = new GeneratorResult { CandidateCount = candidateCount };
+            tempo = null;
             if (beatTimes == null || beatTimes.Count < 2)
             {
                 result.Warnings.Add("Beat bulunamadı (ses analizi).");
@@ -65,9 +77,17 @@ namespace PixelBeat.EditorTools.BeatmapGen.Melody
             }
             result.BeatTimes = new List<double>(beatTimes);
             BeatmapGenerator.FillTempoStats(result);
-            var tempo = TempoMap.FromBeatTimes(beatTimes);
+            tempo = TempoMap.FromBeatTimes(beatTimes);
+            return result;
+        }
 
-            var thinned = MelodyThinner.Thin(melody, preset.TargetNps, preset.MinGapSec);
+        /// <summary>
+        /// Seyreltilmiş hat → harita: hold, akor (chords), kontur şeritleri + iki parmak kısıtları, istatistik ve denetim.
+        /// Döner: haritaya giren her planlı notanın kaynağı (aynı sırada; negatif zamana düşenler atlanır).
+        /// </summary>
+        public static List<MelodyNote> BuildFromLine(IReadOnlyList<MelodyNote> thinned, TempoMap tempo, MelodyPreset preset,
+            double offsetSec, GeneratorResult result, Action<List<PlannedNote>, List<MelodyNote>, MelodyPreset> chords)
+        {
             var planned = new List<PlannedNote>();
             var source = new List<MelodyNote>();
             foreach (var m in thinned)
@@ -80,7 +100,7 @@ namespace PixelBeat.EditorTools.BeatmapGen.Melody
             result.OnsetCount = planned.Count;
 
             AssignHolds(planned, source, tempo, preset);
-            if (preset.Chords) AssignChords(planned, source, preset);
+            if (preset.Chords) chords?.Invoke(planned, source, preset);
 
             var times = new double[planned.Count];
             var pitches = new int[planned.Count];
@@ -102,7 +122,7 @@ namespace PixelBeat.EditorTools.BeatmapGen.Melody
                 result.DurationSec = Math.Max(result.DurationSec, n.EndTime);
             }
             foreach (var p in PlayabilityRules.Check(result.Notes)) result.Warnings.Add(p);
-            return result;
+            return source;
         }
 
         /// <summary>Yeterince uzun tutulan notalar hold; uzunluk üst sınırlı ve sonraki notadan önce biter.</summary>
@@ -111,7 +131,7 @@ namespace PixelBeat.EditorTools.BeatmapGen.Melody
             for (int i = 0; i < planned.Count; i++)
             {
                 var m = source[i];
-                if (m.Duration < preset.HoldMinSec) continue;
+                if (m.NoHold || m.Duration < preset.HoldMinSec) continue;
                 double t = planned[i].Time;
                 double end = t + Math.Min(m.Duration, MaxHoldSec);
                 if (i + 1 < planned.Count) end = Math.Min(end, planned[i + 1].Time - HoldReleaseGapSec);

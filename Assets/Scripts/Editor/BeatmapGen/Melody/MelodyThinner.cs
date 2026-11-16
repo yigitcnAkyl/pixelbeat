@@ -36,6 +36,11 @@ namespace PixelBeat.EditorTools.BeatmapGen.Melody
         }
 
         public static List<MelodyNote> Thin(IReadOnlyList<MelodyNote> line, double targetNps, double minGapSec,
+            double windowSec = DefaultWindowSec, double phraseGapSec = PhraseGapSec) =>
+            Thin(line, _ => targetNps, minGapSec, windowSec, phraseGapSec);
+
+        /// <summary>targetAt: pencere ortasındaki hedef nota/sn (geçişlerde yoğunluk rampası için).</summary>
+        public static List<MelodyNote> Thin(IReadOnlyList<MelodyNote> line, Func<double, double> targetAt, double minGapSec,
             double windowSec = DefaultWindowSec, double phraseGapSec = PhraseGapSec)
         {
             var result = new List<MelodyNote>();
@@ -79,8 +84,9 @@ namespace PixelBeat.EditorTools.BeatmapGen.Melody
                 int end = start;
                 while (end < line.Count && line[end].Time < we) end++;
 
-                double span = Math.Min(we, lastTime + minGapSec) - ws;
-                int budget = Math.Max(1, (int)Math.Round(targetNps * span));
+                double spanEnd = Math.Min(we, lastTime + minGapSec);
+                double span = spanEnd - ws;
+                int budget = Math.Max(1, (int)Math.Round(targetAt((ws + spanEnd) / 2) * span));
                 var order = new List<int>();
                 int used = 0;
                 for (int i = start; i < end; i++)

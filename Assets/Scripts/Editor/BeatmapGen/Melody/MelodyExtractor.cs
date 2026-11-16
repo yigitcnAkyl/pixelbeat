@@ -15,6 +15,8 @@ namespace PixelBeat.EditorTools.BeatmapGen.Melody
         public int ChordVelocity;
         /// <summary>Uzun sessizlikten sonra gelen ilk nota (seyreltmede korunur).</summary>
         public bool PhraseStart;
+        /// <summary>Hold olamaz (vokal: bölünmüş hecenin son olmayan parçası).</summary>
+        public bool NoHold;
         public double End => Time + Duration;
     }
 
