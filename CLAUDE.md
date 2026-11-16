@@ -46,3 +46,17 @@ Geliştirici: Yiğitcan (Türkçe konuş, kısa ve pratik ol).
 ## Pixel art ayarları
 - Sprite import: Filter Mode = Point, Compression = None, tüm sprite'larda aynı Pixels Per Unit.
 - Kamerada Pixel Perfect Camera kullanılır.
+
+## Android build notları
+- Windows kullanıcı adında Türkçe "ı" var (`C:\Users\Msı`). Android araçları (Gradle, CMake/prefab'ın çalıştırdığı `.bat` dosyaları) ASCII olmayan yollarda bozuluyor.
+  Bu yüzden proje `C:\Dev\pixelbeat`'te; kullanıcı klasörü altına (Desktop vb.) taşıma.
+- `GRADLE_USER_HOME=C:\Gradle` (kullanıcı ortam değişkeni). Yoksa Gradle önbelleği `C:\Users\Msı\.gradle`'a düşer ve
+  `:unityLibrary:configureCMakeDebug[arm64-v8a]` adımı `'-class-path' is not recognized` hatasıyla patlar.
+- Ortam değişkeni değişince **Unity Hub'ı sistem tepsisinden de tamamen kapatıp** yeniden aç. Unity, Hub'ın ortamını devralır;
+  Hub açık kaldıkça yeni değişkenleri görmez (sadece Unity'yi kapatıp açmak yetmez).
+- Geçici klasör: `%TEMP%` kullanıcı ortamında `C:\Users\Msı\AppData\Local\Temp`. Süreçlerde genelde kısa ASCII hali (`C:\Users\MS2078~1\...`) görünüyor,
+  şimdiye kadar build'i bu bozmadı. Java "Unable to establish loopback connection" ya da temp yolu hatası verirse
+  TEMP/TMP ve Java'nın geçici klasörünü (`-Djava.io.tmpdir`, `-Djdk.net.unixdomain.tmpdir`) ASCII bir klasöre (ör. `C:\Temp\java`) yönlendir.
+- Unity'nin adb'si: `C:\Program Files\Unity\Hub\Editor\6000.2.6f2\Editor\Data\PlaybackEngines\AndroidPlayer\SDK\platform-tools\adb.exe` (PATH'te adb yok).
+- FPS ölçümü için Development build gerekir; `FpsMeter` logcat'e 5 sn'de bir `[FPS] ...` satırı yazar.
+- MCP üzerinden build sırasında Editor ana thread'i bloklandığı için UnityMCP bağlantısı kopabilir; build bitince yeniden bağlanmasını bekle.

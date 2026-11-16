@@ -58,3 +58,14 @@ Thumbs.db
 # Telifli test müziği (sadece yerel test, GitHub'a yüklenmez)
 /Assets/Audio/Music/lumiere.mp3
 /Assets/Audio/Music/lumiere.mp3.meta
+/Assets/Audio/Midi/lumiere_basicpitch.mid
+/Assets/Audio/Midi/lumiere_basicpitch.mid.meta
+
+# Performance Testing paketinin test koşusundan kalan geçici dosyalar
+/Assets/Resources/PerformanceTestRun*
+/Assets/Resources.meta
+
+# Unity/build geçici klasörü
+/.utmp/
+# Claude yerel izinleri (kişisel)
+/.claude/settings.local.json

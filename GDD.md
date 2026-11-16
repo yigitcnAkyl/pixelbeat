@@ -88,6 +88,20 @@
   - Kısıtlar içinde şerit ses perdesine göre seçilir (bas → sol, tiz → sağ). Üretim belirleyicidir (aynı girdi → aynı harita).
   - Çıktı yukarıdaki JSON formatına yazılır, oynanabilirlik denetiminden geçer; sonra elle düzenlenebilir.
 
+### 7.1 Melodi tabanlı üretim (MIDI) — tercih edilen yöntem
+Beat tabanlı üretim notaları ritme oturtur ama melodik şarkılarda "duyduğun sese" denk gelmez. Bu yüzden asıl yöntem **MIDI'den melodi** çıkarmaktır (Piano Tiles hissi).
+- **Girdi:** Şarkının ses dosyası + MIDI. MIDI ya hazır bulunur ya da şarkıdan **Basic Pitch** (Spotify, açık kaynak) ile otomatik çıkarılır. Basic Pitch çıktısı kayıtla zaten hizalıdır.
+  Hazır (elle yazılmış) MIDI kullanılırsa kayda **hizalama** gerekir (ör. onset/chroma ile DTW); bu sonraki iş.
+- **Melodi çıkarma:** Çok sesli MIDI'den melodi hattı seçilir: ~60 ms içindeki aynı anda başlayan notalardan en tizi (skyline), çok kısa/zayıf "hayalet" notalar ve süslemeler atılır, alt perde sınırı uygulanır.
+- **Zamanlama:** Notalar MIDI'deki gerçek zamanlarında kalır (beat ızgarasına zorla oturtulmaz). Global offset ayarı olur.
+- **Yoğunluk/zorluk:** Hedef nota/sn (ör. Kolay ~1.5, Normal ~2.5, Zor ~3.5). Fazla notalar önem sırasına göre elenir (vuruş gücü, süre, melodik vurgu); notalar arası minimum boşluk korunur.
+- **Şerit = perde konturu:** Melodi yükselince sağa, alçalınca sola kayar; tekrarlanan perde aynı/komşu şeride düşer (aynı şeride çok hızlı art arda gelmesin); büyük atlamalar uzak şeritlere. Eşleme yerel perde aralığına göre (kayan pencere) yapılır ki 4 şeridin hepsi kullanılsın.
+- **Hold:** Yeterince uzun tutulan melodi notaları (ör. ≥ 0.4 sn) hold olur, uzunluk üst sınırlı.
+- **Akor:** Yüksek zorlukta, aynı anda güçlü vurulan birden fazla nota varsa 2'li akor.
+- GDD §7'deki şerit kuralları (yığılma yok, 3+ akor yok, hold sürerken o şeride nota yok, iki parmakla oynanabilir) aynen geçerli.
+- Beat tabanlı üretici "ritim modu" olarak kalır; vuruş çizgisi parlaması için beat zamanları yine şarkıdan çıkarılır.
+- **Sonraki iş — Kayıt modu:** Şarkı çalarken kullanıcı melodiye dokunur, dokunuşlar notaya dönüşür; otomatik haritadaki hatalar böyle düzeltilir.
+
 ## 8. Görsel / Teknik
 - **Çözünürlük (dikey):** Genişlik **180 px sabit**, yükseklik telefonun en-boy oranına göre uzar (16:9'da 320, uzun telefonlarda ~360–400). Pixel Perfect Camera ile tam sayı büyütme (1080 px genişlikli telefonda 6x). Önemli öğeler (şeritler, vuruş çizgisi) güvenli alanda kalmalı; çentik/kamera deliği için Screen.safeArea dikkate alınır.
 - **Kare hızı:** Application.targetFrameRate = 60 (destekleyen telefonlarda 120 seçeneği sonra).
@@ -143,6 +157,6 @@ Prototip: **1 şarkı, sadece oynanış.** Menü, şarkı seçimi, kayıt yok.
 5. **Skor / combo / can:** Başarısızlık ve şarkı sonu sonuç yazısı. ✅
 6. **Otomatik beatmap üretici:** Editor aracı. ✅
    - Test şarkısı: `lumiere.mp3` (yerel, gitignore'da) → `lumiere.json` (zorluk 6, ipucu 161 BPM).
-7. **Neon görünüm:** Placeholder pixel art, efektler, geri bildirim. ✅ (telefonda 60 FPS ölçümü bekliyor)
+7. **Neon görünüm:** Placeholder pixel art, efektler, geri bildirim. ✅ (telefonda build/FPS testi bekliyor (Unity Hub tamamen yeniden başlatılınca yapılacak))
 
 Sonrası (prototip dışı): ana menü, şarkı seçimi, ayarlar ekranı, birden fazla zorluk, skor kaydı, Google Play yayını.
