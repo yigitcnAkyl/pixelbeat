@@ -374,9 +374,12 @@ namespace PixelBeat.EditorTools.NeonArt
         /// Değerlendirme yazısı: kalın, sağa yatık, yukarıdan aşağı renk geçişi (dither'lı), en üst satır beyaz parıltı,
         /// sağ-aşağıda koyu renkli gölge ve kapalı koyu (Void) dış hat. colors: yukarıdan aşağı 2–3 ton.
         /// </summary>
-        public static PixelCanvas Word(string text, params PaletteColor[] colors)
+        public static PixelCanvas Word(string text, params PaletteColor[] colors) => Word(text, WordScale, colors);
+
+        /// <summary>Kelime / etiket (derece harfi, FAILED, YENİ REKOR, rozetler): scale = font büyütmesi.</summary>
+        public static PixelCanvas Word(string text, int scale, params PaletteColor[] colors)
         {
-            var mask = BoldMask(text);
+            var mask = BoldMask(text, scale);
             int mw = mask.GetLength(0), mh = mask.GetLength(1);
             int pad = WordPad;
             int w = mw + ItalicShift(mh - 1) + 2 * pad, h = mh + 2 * pad;
@@ -543,6 +546,17 @@ namespace PixelBeat.EditorTools.NeonArt
                 int half = 5 - Math.Abs(y - 5); // 0..5
                 for (int x = 0; x <= Math.Min(8, half * 8 / 5); x++) p.Set(x, y, c);
             }
+            return p;
+        }
+
+        /// <summary>Geri ◀ (9x11): oynat ikonunun aynası.</summary>
+        public static PixelCanvas IconBack(PaletteColor c)
+        {
+            var play = IconPlay(c);
+            var p = new PixelCanvas(play.Width, play.Height);
+            for (int y = 0; y < play.Height; y++)
+            for (int x = 0; x < play.Width; x++)
+                p[play.Width - 1 - x, y] = play[x, y];
             return p;
         }
 

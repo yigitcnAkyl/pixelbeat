@@ -117,7 +117,8 @@ namespace PixelBeat.EditorTools.BeatmapGen
                 : mode == Mode.Melodi ? lastMelodyPaths.Count > 0 : lastVocalPaths.Count > 0;
             using (new EditorGUI.DisabledScope(!hasOutput))
             {
-                if (GUILayout.Button("Sahneye ata (SongLoader: beatmap + şarkı)")) AssignToScene();
+                string assignLabel = mode == Mode.Ritim ? "Sahneye ata (SongLoader: Özel beatmap + şarkı)" : "Şarkı kataloğuna ekle";
+                if (GUILayout.Button(assignLabel)) AssignToScene();
             }
 
             if (!string.IsNullOrEmpty(summary))
@@ -394,52 +395,60 @@ namespace PixelBeat.EditorTools.BeatmapGen
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Ritim modu: SongLoader'ın "Özel" (Editor hızlı test) beatmap + şarkısı. Melodi / Vokal: haritalar şarkı kataloğuna
+        /// eklenir (aynı ses dosyalı şarkı varsa güncellenir, yoksa yeni satır; kimlik = dosya adı).
+        /// </summary>
         private void AssignToScene()
         {
-            var loader = FindFirstObjectByType<SongLoader>();
-            if (loader == null)
+            if (mode == Mode.Ritim)
             {
-                EditorUtility.DisplayDialog("Beatmap Üretici", "Açık sahnede SongLoader yok.", "Tamam");
+                var loader = FindFirstObjectByType<SongLoader>();
+                if (loader == null)
+                {
+                    EditorUtility.DisplayDialog("Beatmap Üretici", "Açık sahnede SongLoader yok.", "Tamam");
+                    return;
+                }
+                var so = new SerializedObject(loader);
+                so.FindProperty("beatmapJson").objectReferenceValue = AssetDatabase.LoadAssetAtPath<TextAsset>(lastPath);
+                so.FindProperty("musicClip").objectReferenceValue = clip;
+                so.ApplyModifiedProperties();
+                EditorSceneManager.MarkSceneDirty(loader.gameObject.scene);
+                Debug.Log($"[Beatmap Üretici] SongLoader (Özel) → {lastPath} + {clip.name}. autoStartCustom açılırsa Play doğrudan bununla başlar.");
                 return;
             }
 
-            var so = new SerializedObject(loader);
-            if (mode != Mode.Ritim)
+            const string catalogPath = "Assets/Data/SongCatalog.asset";
+            var catalog = AssetDatabase.LoadAssetAtPath<SongCatalog>(catalogPath);
+            if (catalog == null)
             {
-                bool vocal = mode == Mode.Vokal;
-                var paths = vocal ? lastVocalPaths : lastMelodyPaths;
-                Set(so, vocal ? "vocalEasyBeatmap" : "easyBeatmap", paths, MelodyDifficulty.Easy);
-                Set(so, vocal ? "vocalNormalBeatmap" : "normalBeatmap", paths, MelodyDifficulty.Normal);
-                Set(so, vocal ? "vocalHardBeatmap" : "hardBeatmap", paths, MelodyDifficulty.Hard);
-                so.FindProperty("mapType").enumValueIndex = (int)(vocal ? MapType.Vocal : MapType.Melody);
-                so.FindProperty("difficulty").enumValueIndex = paths.ContainsKey(MelodyDifficulty.Normal)
-                    ? (int)SongDifficulty.Normal
-                    : (int)SongDifficulty.Easy + (int)FirstKey(paths);
+                catalog = CreateInstance<SongCatalog>();
+                AssetDatabase.CreateAsset(catalog, catalogPath);
             }
-            else
+
+            var type = mode == Mode.Vokal ? MapType.Vocal : MapType.Melody;
+            var paths = mode == Mode.Vokal ? lastVocalPaths : lastMelodyPaths;
+            var songs = new List<SongEntry>(catalog.Songs);
+            int index = songs.FindIndex(s => s != null && s.Clip == clip);
+            var old = index >= 0 ? songs[index] : null;
+
+            var maps = new List<MapEntry>();
+            if (old != null)
+                foreach (var m in old.Maps)
+                    if (m != null && m.Type != type) maps.Add(m);
+            foreach (var kv in paths)
             {
-                so.FindProperty("beatmapJson").objectReferenceValue = AssetDatabase.LoadAssetAtPath<TextAsset>(lastPath);
-                so.FindProperty("difficulty").enumValueIndex = (int)SongDifficulty.Custom;
+                var diff = kv.Key == MelodyDifficulty.Easy ? SongDifficulty.Easy : kv.Key == MelodyDifficulty.Normal ? SongDifficulty.Normal : SongDifficulty.Hard;
+                maps.Add(new MapEntry(type, diff, AssetDatabase.LoadAssetAtPath<TextAsset>(kv.Value)));
             }
-            so.FindProperty("musicClip").objectReferenceValue = clip;
-            so.ApplyModifiedProperties();
-            EditorSceneManager.MarkSceneDirty(loader.gameObject.scene);
-            string assigned = mode == Mode.Ritim ? lastPath
-                : string.Join(", ", (mode == Mode.Vokal ? lastVocalPaths : lastMelodyPaths).Values);
-            Debug.Log($"[Beatmap Üretici] SongLoader → {assigned} + {clip.name}. Sahneyi kaydetmeyi unutma.");
-        }
 
-        private static void Set(SerializedObject so, string property, Dictionary<MelodyDifficulty, string> paths, MelodyDifficulty d)
-        {
-            if (paths.TryGetValue(d, out var path))
-                so.FindProperty(property).objectReferenceValue = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
-        }
-
-        private static MelodyDifficulty FirstKey(Dictionary<MelodyDifficulty, string> paths)
-        {
-            foreach (var d in new[] { MelodyDifficulty.Easy, MelodyDifficulty.Normal, MelodyDifficulty.Hard })
-                if (paths.ContainsKey(d)) return d;
-            return MelodyDifficulty.Easy;
+            var entry = new SongEntry(old != null ? old.Id : fileName.Trim(), songTitle, artist, clip, maps);
+            if (index >= 0) songs[index] = entry;
+            else songs.Add(entry);
+            catalog.SetSongs(songs);
+            EditorUtility.SetDirty(catalog);
+            AssetDatabase.SaveAssets();
+            Debug.Log($"[Beatmap Üretici] Şarkı kataloğu → {entry.Id}: {type} {string.Join(", ", paths.Values)}");
         }
     }
 }

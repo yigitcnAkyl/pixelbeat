@@ -53,6 +53,17 @@ namespace PixelBeat.Core
         private double lastFrameUnscaled;
         private double lastUpdateRealtime;
 
+        /// <summary>Müzik (ya da kalibrasyon metronomu) ses düzeyi 0–1.</summary>
+        public float Volume
+        {
+            get => audioSource != null ? audioSource.volume : 1f;
+            set
+            {
+                if (audioSource == null) audioSource = GetComponent<AudioSource>();
+                audioSource.volume = Mathf.Clamp01(value);
+            }
+        }
+
         public float Bpm => bpm;
         public double SecPerBeat => 60.0 / bpm;
         public bool IsPlaying => isPlaying;

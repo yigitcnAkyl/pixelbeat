@@ -158,15 +158,8 @@ MonoBehaviour:
   conductor: {fileID: 364336860}
   judgementSystem: {fileID: 275090369}
   noteSpawner: {fileID: 275090367}
-  difficulty: 2
-  mapType: 1
+  autoStartCustom: 0
   beatmapJson: {fileID: 4900000, guid: e4ff42c12c337f44184759e25f74982c, type: 3}
-  easyBeatmap: {fileID: 4900000, guid: c4f635c35f3a50041b4531151c22cb9d, type: 3}
-  normalBeatmap: {fileID: 4900000, guid: 4f1b460243cfc094b994fe4038804963, type: 3}
-  hardBeatmap: {fileID: 4900000, guid: 37c74cac4058dee4cb2c91b94e1e3684, type: 3}
-  vocalEasyBeatmap: {fileID: 4900000, guid: 3bf79d421d6b93a41be8fac0e39e4cfb, type: 3}
-  vocalNormalBeatmap: {fileID: 4900000, guid: 27f4469c9ebca4f4293ef6bebc071c7f, type: 3}
-  vocalHardBeatmap: {fileID: 4900000, guid: fce2621a969028840a31f7b7d262f33b, type: 3}
   musicClip: {fileID: 8300000, guid: 74adac10893d2994bb6177bd0de93cce, type: 3}
   addClickTrack: 0
   clickTrack: {fileID: 0}
@@ -385,9 +378,7 @@ MonoBehaviour:
   conductor: {fileID: 364336860}
   judgementSystem: {fileID: 275090369}
   songLoader: {fileID: 275090365}
-  laneInput: {fileID: 275090370}
   resultsDelaySec: 1
-  restartGuardSec: 0.6
 --- !u!114 &275090373
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -859,8 +850,8 @@ MonoBehaviour:
   screenLayout: {fileID: 519420034}
   laneInput: {fileID: 275090370}
   songLoader: {fileID: 275090365}
-  calibration: {fileID: 669285180}
   gameSession: {fileID: 275090372}
+  router: {fileID: 1800594745}
 --- !u!114 &669285180
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -878,7 +869,6 @@ MonoBehaviour:
   screenLayout: {fileID: 519420034}
   laneInput: {fileID: 275090370}
   songLoader: {fileID: 275090365}
-  crtOverlay: {fileID: 669285185}
   bpm: 90
   warmupTaps: 4
   measuredTaps: 16
@@ -928,20 +918,15 @@ MonoBehaviour:
   gameSession: {fileID: 275090372}
   playfield: {fileID: 275090368}
   screenLayout: {fileID: 519420034}
+  router: {fileID: 1800594745}
   overlayColor:
     color: 0
     transparency: 0.060000002
-  failedColor:
-    color: 15
-    transparency: 0
   textColor:
     color: 5
     transparency: 0
   valueColor:
     color: 6
-    transparency: 0
-  specialColor:
-    color: 13
     transparency: 0
   perfectColor:
     color: 7
@@ -955,6 +940,7 @@ MonoBehaviour:
   missColor:
     color: 15
     transparency: 0
+  glowAlpha: 0.7
 --- !u!114 &669285183
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1097,6 +1083,61 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1800594744
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1800594746}
+  - component: {fileID: 1800594745}
+  m_Layer: 0
+  m_Name: Screen Router
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1800594745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1800594744}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75dfcef276f32d94d93f26261924df22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PixelBeat.UI.Menu.ScreenRouter
+  playfield: {fileID: 275090368}
+  screenLayout: {fileID: 519420034}
+  songLoader: {fileID: 275090365}
+  gameSession: {fileID: 275090372}
+  conductor: {fileID: 364336860}
+  noteSpawner: {fileID: 275090367}
+  laneInput: {fileID: 275090370}
+  calibration: {fileID: 669285180}
+  crtOverlay: {fileID: 669285185}
+  resultScreen: {fileID: 669285182}
+  catalog: {fileID: 11400000, guid: c15be5d886b27dd4895f1ee3e4c3055d, type: 2}
+--- !u!4 &1800594746
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1800594744}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1107,3 +1148,4 @@ SceneRoots:
   - {fileID: 275090371}
   - {fileID: 669285181}
   - {fileID: 1631473946}
+  - {fileID: 1800594746}

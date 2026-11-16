@@ -73,6 +73,28 @@ namespace PixelBeat.EditorTools.NeonArt
                 b.WordGlows[i] = Write(NeonPixelArt.WordGlow(word, wordDefs[i].colors[0]), $"word_{n}_glow", simple, Vector2.zero);
             }
 
+            // Sonuç etiketleri: derece harfleri büyük (7x), FAILED 4x, YENI REKOR! 3x, rozetler 2x.
+            var labelDefs = new (string text, string file, int scale, PaletteColor[] colors)[]
+            {
+                ("S", "grade_s", 7, new[] { PaletteColor.White, PaletteColor.Gold, PaletteColor.Orange }),
+                ("A", "grade_a", 7, new[] { PaletteColor.Cyan, PaletteColor.Violet, PaletteColor.Magenta }),
+                ("B", "grade_b", 7, new[] { PaletteColor.Lime, PaletteColor.Cyan }),
+                ("C", "grade_c", 7, new[] { PaletteColor.Gold, PaletteColor.Orange }),
+                ("D", "grade_d", 7, new[] { PaletteColor.Red, PaletteColor.Plum }),
+                ("FAILED", "failed", 4, new[] { PaletteColor.Red, PaletteColor.Magenta }),
+                ("YENI REKOR!", "new_record", 3, new[] { PaletteColor.White, PaletteColor.Gold, PaletteColor.Orange }),
+                ("FULL COMBO", "full_combo", 2, new[] { PaletteColor.Gold, PaletteColor.Orange }),
+                ("ALL PERFECT", "all_perfect", 2, new[] { PaletteColor.Cyan, PaletteColor.Magenta }),
+            };
+            for (int i = 0; i < labelDefs.Length; i++)
+            {
+                var d = labelDefs[i];
+                var label = NeonPixelArt.Word(d.text, d.scale, d.colors);
+                b.Labels[i] = Write(label, $"label_{d.file}", simple, Vector2.zero);
+                b.LabelGlows[i] = Write(NeonPixelArt.WordGlow(label, d.colors[d.colors.Length > 2 ? 1 : 0]), $"label_{d.file}_glow", simple, Vector2.zero);
+            }
+            b.IconBack = Write(NeonPixelArt.IconBack(PaletteColor.Cyan), "icon_back", simple);
+
             var logo = NeonPixelArt.Logo();
             b.Logo = Write(logo, "logo", simple);
             b.LogoGlow = Write(NeonPixelArt.GlowAround(logo, PaletteColor.Magenta, NeonPixelArt.LogoGlowMargin), "logo_glow", simple);

@@ -205,7 +205,7 @@ Prototip: **1 şarkı, sadece oynanış.** Menü, şarkı seçimi, kayıt yok.
    - Vokal modu (§7.2): + `lumiere_vocals.mp3` + `lumiere_vocals.mid` (yerel) → `lumiere_vocal_easy/normal/hard.json`; sahnede Vokal / Normal seçili. ✅
 7. **Neon görünüm:** Placeholder pixel art, efektler, geri bildirim. ✅ (telefonda build/FPS testi bekliyor (Unity Hub tamamen yeniden başlatılınca yapılacak))
 
-Sonrası (prototip dışı): ana menü, şarkı seçimi, ayarlar ekranı, birden fazla zorluk, skor kaydı, Google Play yayını.
+Sonrası (prototip dışı): ana menü, şarkı seçimi, ayarlar ekranı, birden fazla zorluk, skor kaydı (§11, ✅ UI-2), Google Play yayını.
 
 ## 11. Arayüz (UI) — prototip sonrası ilk iş
 Ekranlar (hepsi dikey, 360 px genişlik, §8 sanat yönüne uygun, dokunmatik):
@@ -216,3 +216,14 @@ Ekranlar (hepsi dikey, 360 px genişlik, §8 sanat yönüne uygun, dokunmatik):
 - **Sonuç ekranı:** Yeni stilde büyük harf derecesi, skor, max combo, Perfect/Great/Good/Miss sayıları, FULL COMBO / ALL PERFECT rozeti, **YENİ REKOR** göstergesi; **TEKRAR** ve **MENÜ** butonları. FAILED ekranı da aynı butonlarla.
 - **Skor kaydı:** Şarkı + harita türü + zorluk başına en yüksek skor, derece, max combo, FC/AP bilgisi (PlayerPrefs ya da JSON dosya).
 - Ekranlar arası geçiş: kısa neon fade/kaydırma; geri tuşu (Android back) bir önceki ekrana döner.
+- **Uygulama (UI-2):**
+  - Tek sahne (`Main`); `ScreenRouter` ekran yığınını tutar, menü ekranlarını kodla kurar (SpriteRenderer + `PixelText` / `PixelButton`, 360 px ızgarası). Geçiş: 0.12 sn Void'e karartma + ortadan genişleyen magenta çizgi, sonra açılma. Geri (Escape = Android back): bir önceki ekran; oyundan geri → şarkı detayı (harita boşaltılır, skor kaydedilmez); kalibrasyondan geri → ayarlar; ana menüde → uygulamadan çıkış.
+  - Menü dokunuşları `UiPointer` (tek parmak): butonlar **bırakışta** tetiklenir, 8 px'ten fazla kayan dokunuş kaydırmadır. Oyun içi ◀ / R ve kalibrasyon basışta (hızlı tepki).
+  - Şarkı kataloğu: `Assets/Data/SongCatalog.asset` (şarkı: kimlik, ad, sanatçı, AudioClip, haritalar = tür + zorluk + JSON). Beatmap Üretici'nin Melodi/Vokal modu "Şarkı kataloğuna ekle" ile haritaları buraya yazar. SongLoader'daki "Özel" beatmap + `autoStartCustom` sadece Editor hızlı testi.
+  - Şarkı listesi: satır 320x64 neon çerçeve (ad, sanatçı, süre, en iyi derece), SpriteMask ile kırpılan kaydırma, bırakınca sürtünmeli kayma.
+  - Şarkı detayı: VOKAL / MELODI sekmeleri (sadece mevcut olanlar), KOLAY / NORMAL / ZOR satırları (rekor skor + derece, AP'de `+`, harita yoksa YOK), BASLA. Son seçilen tür ve zorluk hatırlanır.
+  - Ayarlar: nota hızı 0.40–2.00 sn (0.05 adım, önizleme şeridinde oyundaki piksel/sn hızla akan elmaslar), ses offset'i ±5 ms (−500…+500) + KALIBRE ET, müzik sesi (varsayılan 80), efekt sesi (varsayılan 70; beat tıkı, kalibrasyon metronomu, buton tık sesi), CRT. Hitsound yok.
+  - Oyun ekranı: üst köşelerde ◀ (menü) ve R (baştan başlat); CAL kaldırıldı (kalibrasyon ayarlarda).
+  - Sonuç: büyük derece harfi (7x font, renk geçişli + hale), FULL COMBO / ALL PERFECT rozeti, yanıp sönen YENI REKOR!, skor (2x), max combo, sayılar, TEKRAR / MENU. FAILED aynı butonlarla. Açıldıktan sonra 0.5 sn dokunuş yok sayılır.
+  - Skor kaydı: `persistentDataPath/scores.json` (anahtar `şarkı|tür|zorluk`): en yüksek skor + o skorun derecesi, en iyi max combo, FC/AP kalıcı. Fail edilen oyun kaydedilmez. Bozuk dosya boş kayıtla açılır.
+  - Ekran görüntüleri: `Docs/ui_menu_*.png`, `Docs/ui_sonuc.png`, `Docs/ui_failed.png`.

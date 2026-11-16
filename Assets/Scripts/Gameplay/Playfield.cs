@@ -119,6 +119,19 @@ namespace PixelBeat.Gameplay
             return sr;
         }
 
+        private bool visible = true;
+
+        /// <summary>Menülerde oyun alanı (şeritler, vuruş çizgisi, düğmeler) gizlenir; arka plan kalır.</summary>
+        public bool Visible
+        {
+            get => visible;
+            set
+            {
+                visible = value;
+                if (visualsRoot != null) visualsRoot.gameObject.SetActive(value);
+            }
+        }
+
         /// <summary>Vuruşta çizgi kısa süre parlak sprite'a geçer (HitFeedback çağırır).</summary>
         public void FlashHitLine(float seconds) => hitFlashTimer = Mathf.Max(hitFlashTimer, seconds);
 
@@ -145,6 +158,7 @@ namespace PixelBeat.Gameplay
             if (visualsRoot != null) Destroy(visualsRoot.gameObject);
             visualsRoot = new GameObject("Visuals").transform;
             visualsRoot.SetParent(transform, false);
+            visualsRoot.gameObject.SetActive(visible);
             var root = visualsRoot;
 
             int bottom = l.BottomPx;
@@ -215,6 +229,7 @@ namespace PixelBeat.Gameplay
 
         private void Update()
         {
+            if (!visible) return;
             for (int i = 0; i < LaneCount; i++)
             {
                 bool held = laneInput != null && laneInput.IsHeld(i);

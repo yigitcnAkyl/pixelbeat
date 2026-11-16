@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 682c71c5f3337db46858054ca0513cb0, type: 3}
+  m_Name: SongCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::PixelBeat.Gameplay.SongCatalog
+  songs:
+  - id: lumiere
+    title: Lumiere
+    artist: 
+    clip: {fileID: 8300000, guid: 74adac10893d2994bb6177bd0de93cce, type: 3}
+    maps:
+    - type: 1
+      difficulty: 1
+      beatmap: {fileID: 4900000, guid: 3bf79d421d6b93a41be8fac0e39e4cfb, type: 3}
+    - type: 1
+      difficulty: 2
+      beatmap: {fileID: 4900000, guid: 27f4469c9ebca4f4293ef6bebc071c7f, type: 3}
+    - type: 1
+      difficulty: 3
+      beatmap: {fileID: 4900000, guid: fce2621a969028840a31f7b7d262f33b, type: 3}
+    - type: 0
+      difficulty: 1
+      beatmap: {fileID: 4900000, guid: c4f635c35f3a50041b4531151c22cb9d, type: 3}
+    - type: 0
+      difficulty: 2
+      beatmap: {fileID: 4900000, guid: 4f1b460243cfc094b994fe4038804963, type: 3}
+    - type: 0
+      difficulty: 3
+      beatmap: {fileID: 4900000, guid: 37c74cac4058dee4cb2c91b94e1e3684, type: 3}

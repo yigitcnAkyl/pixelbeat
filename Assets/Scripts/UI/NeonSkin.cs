@@ -31,6 +31,22 @@ namespace PixelBeat.UI
             Miss,
         }
 
+        /// <summary>Sonuç ekranı etiketleri (hazır sprite + hale).</summary>
+        public enum Label
+        {
+            GradeS,
+            GradeA,
+            GradeB,
+            GradeC,
+            GradeD,
+            Failed,
+            NewRecord,
+            FullCombo,
+            AllPerfect,
+        }
+
+        public const int LabelCount = 9;
+
         [Tooltip("Additive parlama materyali (PixelBeat/SpriteAdditive).")]
         [SerializeField] private Material additive;
 
@@ -46,10 +62,15 @@ namespace PixelBeat.UI
         [SerializeField] private Sprite logoGlow;
         [SerializeField] private Sprite iconPlay;
         [SerializeField] private Sprite iconGear;
+        [SerializeField] private Sprite iconBack;
 
         [Header("Değerlendirme yazıları (PERFECT!, GREAT!, GOOD!, MISS!)")]
         [SerializeField] private Sprite[] words = new Sprite[4];
         [SerializeField] private Sprite[] wordGlows = new Sprite[4];
+
+        [Header("Sonuç etiketleri (S A B C D, FAILED, YENI REKOR!, FULL COMBO, ALL PERFECT)")]
+        [SerializeField] private Sprite[] labels = new Sprite[LabelCount];
+        [SerializeField] private Sprite[] labelGlows = new Sprite[LabelCount];
 
         [Header("Renk başına (palet indeksine göre)")]
         [SerializeField] private Sprite[] noteHead = new Sprite[PaletteSize];
@@ -76,6 +97,12 @@ namespace PixelBeat.UI
         public Sprite LogoGlow => logoGlow;
         public Sprite IconPlay => iconPlay;
         public Sprite IconGear => iconGear;
+        public Sprite IconBack => iconBack;
+
+        public Sprite LabelSprite(Label l) => labels != null && labels.Length > (int)l ? labels[(int)l] : null;
+        public Sprite LabelGlow(Label l) => labelGlows != null && labelGlows.Length > (int)l ? labelGlows[(int)l] : null;
+
+        public static Label GradeLabel(int grade) => (Label)Mathf.Clamp(grade, 0, 4);
 
         public Sprite WordSprite(Word w) => words != null && words.Length > (int)w ? words[(int)w] : null;
         public Sprite WordGlow(Word w) => wordGlows != null && wordGlows.Length > (int)w ? wordGlows[(int)w] : null;
@@ -105,8 +132,9 @@ namespace PixelBeat.UI
         public sealed class BakedSet
         {
             public Material Additive;
-            public Sprite LanePanel, HitLineIdle, HitLineBeat, Particle1, Particle2, Sky, Logo, LogoGlow, IconPlay, IconGear;
+            public Sprite LanePanel, HitLineIdle, HitLineBeat, Particle1, Particle2, Sky, Logo, LogoGlow, IconPlay, IconGear, IconBack;
             public Sprite[] Words = new Sprite[4], WordGlows = new Sprite[4];
+            public Sprite[] Labels = new Sprite[LabelCount], LabelGlows = new Sprite[LabelCount];
             public Sprite[] NoteHead = new Sprite[PaletteSize], NoteGlow = new Sprite[PaletteSize];
             public Sprite[] HoldBody = new Sprite[PaletteSize], HoldGlow = new Sprite[PaletteSize];
             public Sprite[] HoldTail = new Sprite[PaletteSize], TailGlow = new Sprite[PaletteSize];
@@ -128,8 +156,11 @@ namespace PixelBeat.UI
             logoGlow = b.LogoGlow;
             iconPlay = b.IconPlay;
             iconGear = b.IconGear;
+            iconBack = b.IconBack;
             words = b.Words;
             wordGlows = b.WordGlows;
+            labels = b.Labels;
+            labelGlows = b.LabelGlows;
             noteHead = b.NoteHead;
             noteGlow = b.NoteGlow;
             holdBody = b.HoldBody;

@@ -43,6 +43,13 @@ namespace PixelBeat.Audio
 
         public void Configure(Conductor newConductor) => conductor = newConductor;
 
+        /// <summary>Tık ses düzeyi (ayarlardaki efekt sesi). Sonraki planlanan tıklardan itibaren geçerli.</summary>
+        public float Volume
+        {
+            get => volume;
+            set => volume = Mathf.Clamp01(value);
+        }
+
         /// <summary>Conductor.Play'den hemen sonra çağrılır. Beat aralığı [firstBeat, lastBeat] çalınır.</summary>
         public void Begin(TempoMap map, int firstBeat, int lastBeatInclusive)
         {

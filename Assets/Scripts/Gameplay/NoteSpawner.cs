@@ -40,7 +40,12 @@ namespace PixelBeat.Gameplay
 
         public int ActiveCount => active.Count;
         public int PoolInactiveCount => pool?.CountInactive ?? 0;
-        public float ScrollTimeSec => scrollTimeSec;
+        /// <summary>Nota hızı (sn). Ayarlar ekranı değiştirir; görünen notalar bir sonraki karede yeni hızla konumlanır.</summary>
+        public float ScrollTimeSec
+        {
+            get => scrollTimeSec;
+            set => scrollTimeSec = Mathf.Clamp(value, 0.3f, 3f);
+        }
 
         public Color LaneColor(int lane) => Palette.Get(laneColors[lane]);
         public PaletteColor LanePalette(int lane) => laneColors[lane];

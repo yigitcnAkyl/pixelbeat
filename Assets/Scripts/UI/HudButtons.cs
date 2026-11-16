@@ -1,13 +1,13 @@
 using PixelBeat.Core;
 using PixelBeat.Gameplay;
+using PixelBeat.UI.Menu;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace PixelBeat.UI
 {
     /// <summary>
-    /// Üst köşelerde (safe area içinde) iki küçük buton: sol CAL = kalibrasyon, sağ R = baştan başlat.
-    /// Editor'de C tuşu da kalibrasyonu açar (R tuşunu SongLoader dinler).
+    /// Oyun ekranının üst köşelerinde (safe area içinde) iki küçük buton (GDD §11): sol ◀ = menüye (şarkı detayına) dön,
+    /// sağ R = baştan başlat. Sadece oynanırken görünür. Basışta tetiklenir (oyun sırasında hızlı tepki).
     /// </summary>
     public class HudButtons : MonoBehaviour
     {
@@ -17,24 +17,22 @@ namespace PixelBeat.UI
         [SerializeField] private ScreenLayout screenLayout;
         [SerializeField] private LaneInput laneInput;
         [SerializeField] private SongLoader songLoader;
-        [SerializeField] private CalibrationScreen calibration;
         [SerializeField] private GameSession gameSession;
+        [SerializeField] private ScreenRouter router;
 
-        private PixelButton calButton;
+        private PixelButton backButton;
         private PixelButton restartButton;
 
         /// <summary>Üst buton sırasının alt kenarı (oyun pikseli). Skor yazısı ve can barı buna göre yerleşir.</summary>
         public int RowBottomPx => screenLayout.SafeTopPx - MarginPx - PixelButton.Height;
 
-        /// <summary>Konum bir HUD butonunun üstünde mi (sonuç ekranında yeniden başlatma saymamak için).</summary>
-        public bool Contains(Vector2 px) => calButton.Contains(px) || restartButton.Contains(px);
+        private bool Shown => gameSession.State == GameSession.SessionState.Playing && (router == null || router.InGame);
 
         private void Awake()
         {
-            calButton = new PixelButton(playfield, transform, "CAL", 20);
+            backButton = new PixelButton(playfield, transform, "", 20, PaletteColor.Cyan, playfield.Skin != null ? playfield.Skin.IconBack : null);
             restartButton = new PixelButton(playfield, transform, "R", 20, PaletteColor.Magenta);
             Layout();
-            if (gameSession != null) gameSession.IgnoreTouchAt = Contains;
         }
 
         private void OnEnable()
@@ -52,25 +50,25 @@ namespace PixelBeat.UI
         private void Layout()
         {
             int y = RowBottomPx;
-            calButton.Place(screenLayout.LeftPx + MarginPx + 2, y);
-            int rw = PixelButton.Height; // kare
-            restartButton.Place(screenLayout.RightPx - MarginPx - 2 - rw, y, rw);
+            int w = PixelButton.Height + 8;
+            backButton.Place(screenLayout.LeftPx + MarginPx + 2, y, w);
+            restartButton.Place(screenLayout.RightPx - MarginPx - 2 - w, y, w);
         }
 
         private void Update()
         {
-            bool show = !calibration.IsOpen;
-            calButton.Visible = show;
+            bool show = Shown;
+            backButton.Visible = show;
             restartButton.Visible = show;
-
-            var keyboard = Keyboard.current;
-            if (show && keyboard != null && keyboard.cKey.wasPressedThisFrame) calibration.Open();
         }
 
         private void OnTouch(Vector2 px, double songTime)
         {
-            if (calibration.IsOpen) return;
-            if (calButton.Contains(px)) calibration.Open();
+            if (!Shown) return;
+            if (backButton.Contains(px))
+            {
+                if (router != null) router.Back();
+            }
             else if (restartButton.Contains(px)) songLoader.Restart();
         }
     }

@@ -23,6 +23,7 @@ MonoBehaviour:
   logoGlow: {fileID: 21300000, guid: 05989f953f787aa4983bb3ed6b41b0c4, type: 3}
   iconPlay: {fileID: 21300000, guid: 916536a6b35dcd44bbf505640e2689f9, type: 3}
   iconGear: {fileID: 21300000, guid: 79c4fc6e83790674a849dc48df7b8489, type: 3}
+  iconBack: {fileID: 21300000, guid: feecc21d95bab6b479abb95911862529, type: 3}
   words:
   - {fileID: 21300000, guid: e81c000cd3ead51418bf135c6568a999, type: 3}
   - {fileID: 21300000, guid: a0aca92d234dd334ebbf92035d3cd770, type: 3}
@@ -33,6 +34,26 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 1024bfbbc5ce3a841b20195b4b44473e, type: 3}
   - {fileID: 21300000, guid: 1b3caf056faef0445b738a8682dd21de, type: 3}
   - {fileID: 21300000, guid: d3f92157856f8814789983dc992d32f9, type: 3}
+  labels:
+  - {fileID: 21300000, guid: 56d31da92526caf4a8cf43069e5b21fd, type: 3}
+  - {fileID: 21300000, guid: 6a01623622d1828408a5e9f3bff1db18, type: 3}
+  - {fileID: 21300000, guid: e7f8dff58a0edb648ad8227647b89108, type: 3}
+  - {fileID: 21300000, guid: 4287c7efd384ba343bb9dddcc4f159e0, type: 3}
+  - {fileID: 21300000, guid: dadadd024419b41428d1556e1ccdcdad, type: 3}
+  - {fileID: 21300000, guid: 2d4b26bf54d76ea4dad3baf424ed4bc1, type: 3}
+  - {fileID: 21300000, guid: bb71ff6a2b7971342b164e9bfd4a2c1e, type: 3}
+  - {fileID: 21300000, guid: 6b491f21c8338ad4b9e01478d8a941e4, type: 3}
+  - {fileID: 21300000, guid: b338700354ea4f143b81d3f42c681ff3, type: 3}
+  labelGlows:
+  - {fileID: 21300000, guid: 4abfab79f371d1e408c2d9c1b9ddcc55, type: 3}
+  - {fileID: 21300000, guid: b621f8a44d5396c41815c39169c5787c, type: 3}
+  - {fileID: 21300000, guid: 94e470a4b14a80446b8fe116fd66134b, type: 3}
+  - {fileID: 21300000, guid: 725dbfe1e5e690043a1aa66589e7968b, type: 3}
+  - {fileID: 21300000, guid: 6ec7d4f6011071a4895943e36fab330d, type: 3}
+  - {fileID: 21300000, guid: 527ab8ba0e499b3459adec51e5b1d622, type: 3}
+  - {fileID: 21300000, guid: b83fa2454a290b8478d189af7bc58354, type: 3}
+  - {fileID: 21300000, guid: 5d5e70a61c2414844b2de0f53a22ee6e, type: 3}
+  - {fileID: 21300000, guid: 686679d3d8834c443834f519d808257e, type: 3}
   noteHead:
   - {fileID: 0}
   - {fileID: 0}

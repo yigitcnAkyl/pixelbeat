@@ -21,8 +21,6 @@ namespace PixelBeat.UI
         [SerializeField] private ScreenLayout screenLayout;
         [SerializeField] private LaneInput laneInput;
         [SerializeField] private SongLoader songLoader;
-        [Tooltip("CRT aç/kapat butonu için (ayarlar ekranı gelene kadar burada).")]
-        [SerializeField] private CrtOverlay crtOverlay;
 
         [Tooltip("Yarım beat'ten uzun gecikmeler karışmasın diye yavaş tempo. 90 BPM'de pencere -167..+500 ms.")]
         [SerializeField, Range(60f, 140f)] private float bpm = 90f;
@@ -54,12 +52,13 @@ namespace PixelBeat.UI
         private SpriteRenderer overlay;
         private SpriteRenderer tapIndicator;
         private PixelText title, line1, line2, status, detail, note;
-        private PixelButton saveButton, retryButton, closeButton, crtButton;
+        private PixelButton saveButton, retryButton, closeButton;
         private AudioClip clip;
 
-        private string CrtLabel => crtOverlay != null && crtOverlay.IsOn ? "CRT: ACIK" : "CRT: KAPALI";
-
         public bool IsOpen => phase != Phase.Closed;
+
+        /// <summary>Kalibrasyon kapandı (KAPAT, KAYDET ya da geri tuşu) — ScreenRouter ayarlara döner.</summary>
+        public event System.Action Closed;
 
         private void Awake()
         {
@@ -78,7 +77,6 @@ namespace PixelBeat.UI
             saveButton = new PixelButton(playfield, t, "KAYDET", Order + 2);
             retryButton = new PixelButton(playfield, t, "TEKRAR", Order + 2);
             closeButton = new PixelButton(playfield, t, "KAPAT", Order + 2, PaletteColor.Magenta);
-            crtButton = new PixelButton(playfield, t, "CRT: KAPALI", Order + 2);
 
             root.SetActive(false);
         }
@@ -118,13 +116,14 @@ namespace PixelBeat.UI
             StartMeasuring();
         }
 
-        private void Close()
+        /// <summary>Metronomu durdurur ve ekranı kapatır; dönüş ekranını ScreenRouter seçer (<see cref="Closed"/>).</summary>
+        public void Close()
         {
+            if (!IsOpen) return;
             conductor.Stop();
             phase = Phase.Closed;
             root.SetActive(false);
-            laneInput.LaneTouchesEnabled = true;
-            songLoader.Restart(); // songLoader beatmap BPM/offset'ini Conductor'a geri yükler
+            Closed?.Invoke();
         }
 
         private void StartMeasuring()
@@ -151,12 +150,6 @@ namespace PixelBeat.UI
             if (!IsOpen) return;
 
             if (closeButton.Contains(px)) { Close(); return; }
-            if (crtButton.Contains(px))
-            {
-                if (crtOverlay != null) crtOverlay.Toggle();
-                Layout();
-                return; // dokunuş ölçüme sayılmaz
-            }
 
             if (phase == Phase.Result)
             {
@@ -208,10 +201,6 @@ namespace PixelBeat.UI
             title.Set("KALIBRASYON", 0, top, PixelText.Align.Center, titleColor);
             line1.Set("SESLE BIRLIKTE", 0, top - 2 * LineGap, PixelText.Align.Center, textColor);
             line2.Set("EKRANA DOKUN", 0, top - 3 * LineGap, PixelText.Align.Center, textColor);
-
-            crtButton.SetText(CrtLabel);
-            int crtW = PixelButton.WidthFor(crtButton.Text);
-            crtButton.Place(-crtW / 2, top - 5 * LineGap - PixelButton.Height);
 
             Playfield.PlaceRect(tapIndicator.transform, -6 * S, 18 * S, 12 * S, 12 * S, playfield.PixelSprite.rect.width);
 
