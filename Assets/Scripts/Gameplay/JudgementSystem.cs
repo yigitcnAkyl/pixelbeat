@@ -5,7 +5,7 @@ using UnityEngine;
 namespace PixelBeat.Gameplay
 {
     /// <summary>
-    /// GDD §4: basışları en yakın bekleyen notaya göre değerlendirir, kaçan notaları MISS yapar.
+    /// <see cref="ChartJudge"/>'ı input'a ve Conductor'a bağlar. Kurallar ChartJudge'da (GDD §3-4).
     /// </summary>
     public class JudgementSystem : MonoBehaviour
     {
@@ -13,83 +13,57 @@ namespace PixelBeat.Gameplay
         [SerializeField] private JudgementWindows windows;
         [SerializeField] private LaneInput laneInput;
 
-        private NoteChart chart;
-        private int[] laneHead;
+        private ChartJudge judge;
+        private bool loaded;
 
-        /// <summary>(nota, sonuç, fark sn [negatif = erken])</summary>
-        public event Action<ChartNote, Judgement, double> NoteJudged;
+        /// <summary>(nota, tür, sonuç, fark sn [negatif = erken])</summary>
+        public event Action<ChartNote, JudgementKind, Judgement, double> NoteJudged;
 
         public JudgementWindows Windows => windows;
+
+        /// <summary>Şeritte şu an tutulan hold var mı (şerit parlaması için).</summary>
+        public bool IsHolding(int lane) => judge != null && judge.ActiveHold(lane) != null;
+
+        private void Awake()
+        {
+            judge = new ChartJudge(windows);
+            judge.Judged += (note, kind, result, diff) => NoteJudged?.Invoke(note, kind, result, diff);
+        }
 
         private void OnEnable()
         {
             laneInput.LanePressed += OnLanePressed;
+            laneInput.LaneReleased += OnLaneReleased;
         }
 
         private void OnDisable()
         {
             laneInput.LanePressed -= OnLanePressed;
+            laneInput.LaneReleased -= OnLaneReleased;
         }
 
         public void Load(NoteChart newChart)
         {
-            chart = newChart;
-            laneHead = new int[NoteChart.LaneCount];
+            judge.Load(newChart);
+            loaded = newChart != null;
         }
 
         private void Update()
         {
-            if (chart == null || !conductor.IsPlaying) return;
-            CheckMisses(conductor.SongPositionSec);
-        }
-
-        private void CheckMisses(double songTime)
-        {
-            for (int lane = 0; lane < NoteChart.LaneCount; lane++)
-            {
-                var list = chart.LaneNotes(lane);
-                while (laneHead[lane] < list.Count)
-                {
-                    var note = list[laneHead[lane]];
-                    if (note.State != NoteState.Pending)
-                    {
-                        laneHead[lane]++;
-                        continue;
-                    }
-
-                    double late = songTime - note.TimeSec;
-                    if (late <= windows.GoodSec) break;
-
-                    Judge(note, Judgement.Miss, late);
-                    laneHead[lane]++;
-                }
-            }
+            if (!loaded || !conductor.IsPlaying) return;
+            judge.Tick(conductor.SongPositionSec);
         }
 
         private void OnLanePressed(int lane, double songTime)
         {
-            if (chart == null || !conductor.IsPlaying) return;
-
-            CheckMisses(songTime);
-
-            var list = chart.LaneNotes(lane);
-            if (laneHead[lane] >= list.Count) return;
-
-            var note = list[laneHead[lane]];
-            double diff = songTime - note.TimeSec;
-
-            // Good penceresinden erken basış notayı tüketmez.
-            if (diff < -windows.GoodSec) return;
-
-            Judge(note, windows.EvaluatePress(diff), diff);
-            laneHead[lane]++;
+            if (!loaded || !conductor.IsPlaying) return;
+            judge.Press(lane, songTime);
         }
 
-        private void Judge(ChartNote note, Judgement result, double diff)
+        private void OnLaneReleased(int lane, double songTime)
         {
-            note.Result = result;
-            note.State = result == Judgement.Miss ? NoteState.Missed : NoteState.Hit;
-            NoteJudged?.Invoke(note, result, diff);
+            if (!loaded || !conductor.IsPlaying) return;
+            judge.Release(lane, songTime);
         }
     }
 }

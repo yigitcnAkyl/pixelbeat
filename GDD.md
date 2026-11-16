@@ -89,7 +89,10 @@ Prototip: **1 şarkı, sadece oynanış.** Menü, şarkı seçimi, kayıt yok.
    - Kalibrasyon: 90 BPM metronom (sadece ses), 4 ısınma + 16 ölçülen dokunuş, uçlardan 2'şer atılmış ortalama. Fark penceresi geç tarafa asimetrik (−¼ … +¾ beat).
    - Offset sadece gerçek cihaz build'inde PlayerPrefs'e kaydedilir; Editor / Unity Remote'ta sonuç sadece gösterilir.
    - Üst köşelerde geçici butonlar: CAL (kalibrasyon), R (baştan başlat). Gerçek pause gelene kadar uygulama arka plandan dönünce şarkı baştan başlar.
-4. **Hold notalar:** Basış + bırakış değerlendirmesi, kırılma (dokunmatikte parmak kaldırma/kayma dahil).
+4. **Hold notalar:** Basış + bırakış değerlendirmesi, kırılma (dokunmatikte parmak kaldırma/kayma dahil). ✅
+   - Başı kaçırılan hold: basış + bırakış MISS, tamamı gri akar. Kırılan hold'un kalan gövdesi gri akar.
+   - Bırakış sonucu basış yazısının bir satır üstünde ayrı gösterilir. Hold tutulurken şerit parlar.
+   - Beatmap yüklenirken aynı şeritte hold sürerken (bitişi dahil) başlayan nota uyarı verir.
 5. **Skor / combo / can:** Başarısızlık ve şarkı sonu sonuç yazısı.
 6. **Otomatik beatmap üretici:** Editor aracı.
 7. **Neon görünüm:** Placeholder pixel art, efektler, geri bildirim.

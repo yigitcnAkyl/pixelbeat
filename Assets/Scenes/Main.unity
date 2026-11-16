@@ -173,6 +173,7 @@ MonoBehaviour:
   conductor: {fileID: 364336860}
   judgementSystem: {fileID: 275090369}
   yPx: 0
+  releaseLineOffsetPx: 10
   displaySec: 0.4
   perfectColor: {r: 0.2, g: 1, b: 1, a: 1}
   greatColor: {r: 0.4, g: 1, b: 0.4, a: 1}
@@ -194,12 +195,16 @@ MonoBehaviour:
   playfield: {fileID: 275090368}
   scrollTimeSec: 1
   noteHeightPx: 4
+  holdBodyInsetPx: 9
+  holdTailHeightPx: 2
+  holdBodyBrightness: 0.55
   laneColors:
   - {r: 0.2, g: 1, b: 1, a: 1}
   - {r: 1, g: 0.2509804, b: 0.7529412, a: 1}
   - {r: 1, g: 0.2509804, b: 0.7529412, a: 1}
   - {r: 0.2, g: 1, b: 1, a: 1}
   missedColor: {r: 0.3137255, g: 0.3137255, b: 0.40784314, a: 1}
+  missedBodyColor: {r: 0.20392157, g: 0.20392157, b: 0.28235295, a: 1}
 --- !u!114 &275090368
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -215,6 +220,8 @@ MonoBehaviour:
   conductor: {fileID: 364336860}
   laneInput: {fileID: 275090370}
   screenLayout: {fileID: 519420034}
+  judgementSystem: {fileID: 275090369}
+  noteSpawner: {fileID: 275090367}
   pixelSprite: {fileID: 21300000, guid: 3470f2bc24394294f99f2ecd976a5545, type: 3}
   laneWidthPx: 40
   hitLineFromBottom: 0.2
@@ -230,6 +237,7 @@ MonoBehaviour:
   keyLabelIdleColor: {r: 0.5411765, g: 0.5411765, b: 0.6901961, a: 1}
   keyLabelPressedColor: {r: 0.043137256, g: 0.043137256, b: 0.08627451, a: 1}
   beatGlowBeats: 0.2
+  holdGlowAlpha: 0.07
 --- !u!114 &275090369
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -598,7 +606,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 12.1875
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

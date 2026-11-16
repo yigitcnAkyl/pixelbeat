@@ -47,6 +47,32 @@
     { "lane": 3, "beat": 27,   "lengthBeats": 0 },
 
     { "lane": 0, "beat": 28,   "lengthBeats": 0 },
-    { "lane": 3, "beat": 28,   "lengthBeats": 0 }
+    { "lane": 3, "beat": 28,   "lengthBeats": 0 },
+
+    { "lane": 0, "beat": 32,   "lengthBeats": 2 },
+    { "lane": 3, "beat": 34,   "lengthBeats": 1 },
+
+    { "lane": 1, "beat": 36,   "lengthBeats": 4 },
+    { "lane": 3, "beat": 37,   "lengthBeats": 0 },
+    { "lane": 2, "beat": 38,   "lengthBeats": 0 },
+    { "lane": 3, "beat": 39,   "lengthBeats": 0 },
+
+    { "lane": 2, "beat": 41,   "lengthBeats": 0.5 },
+    { "lane": 0, "beat": 42,   "lengthBeats": 3 },
+    { "lane": 2, "beat": 43,   "lengthBeats": 0 },
+    { "lane": 3, "beat": 43.5, "lengthBeats": 0 },
+    { "lane": 1, "beat": 44,   "lengthBeats": 0 },
+
+    { "lane": 1, "beat": 46,   "lengthBeats": 2 },
+    { "lane": 2, "beat": 46,   "lengthBeats": 2 },
+
+    { "lane": 3, "beat": 49,   "lengthBeats": 6 },
+    { "lane": 0, "beat": 50,   "lengthBeats": 0 },
+    { "lane": 0, "beat": 51,   "lengthBeats": 0 },
+    { "lane": 1, "beat": 52,   "lengthBeats": 0 },
+    { "lane": 2, "beat": 53,   "lengthBeats": 0 },
+
+    { "lane": 0, "beat": 56,   "lengthBeats": 0 },
+    { "lane": 3, "beat": 56,   "lengthBeats": 0 }
   ]
 }

@@ -15,6 +15,9 @@ namespace PixelBeat.Gameplay
         [SerializeField] private Conductor conductor;
         [SerializeField] private LaneInput laneInput;
         [SerializeField] private ScreenLayout screenLayout;
+        [Tooltip("Hold tutulurken şerit parlaması için.")]
+        [SerializeField] private JudgementSystem judgementSystem;
+        [SerializeField] private NoteSpawner noteSpawner;
         [Tooltip("16x16 beyaz placeholder sprite (PPU 16)")]
         [SerializeField] private Sprite pixelSprite;
 
@@ -38,8 +41,11 @@ namespace PixelBeat.Gameplay
         [SerializeField] private Color keyLabelIdleColor = new Color32(0x8A, 0x8A, 0xB0, 0xFF);
         [SerializeField] private Color keyLabelPressedColor = new Color32(0x0B, 0x0B, 0x16, 0xFF);
         [SerializeField, Range(0.05f, 1f)] private float beatGlowBeats = 0.2f;
+        [Tooltip("Hold tutulurken şerit panelinin parlaklığı (şerit rengi alfa).")]
+        [SerializeField, Range(0f, 1f)] private float holdGlowAlpha = 0.07f;
 
         private Transform visualsRoot;
+        private SpriteRenderer[] laneGlows;
         private SpriteRenderer hitLine;
         private SpriteRenderer[] keyBoxes;
         private SpriteRenderer[] keyLabels;
@@ -112,6 +118,14 @@ namespace PixelBeat.Gameplay
             CreateRect("Background", root, l.LeftPx, bottom, l.RightPx - l.LeftPx, height, backgroundColor, -1);
             CreateRect("Panel", root, FieldLeftPx, bottom, FieldWidthPx, height, panelColor, 0);
 
+            // Hold tutulurken parlayan şerit katmanı (panelin üstü, ayraç pikselleriyle çakışmaz).
+            laneGlows = new SpriteRenderer[LaneCount];
+            for (int i = 0; i < LaneCount; i++)
+            {
+                laneGlows[i] = CreateRect($"Lane Glow {i}", root, LaneLeftPx(i) + 1, bottom, laneWidthPx - 1, height, Color.clear, 1);
+                laneGlows[i].enabled = false;
+            }
+
             // Ayraçlar: dış kenarlar panelin hemen dışında, iç ayraçlar şerit sınırında.
             CreateRect("Border L", root, FieldLeftPx - 1, bottom, 1, height, separatorColor, 1);
             CreateRect("Border R", root, FieldLeftPx + FieldWidthPx, bottom, 1, height, separatorColor, 1);
@@ -155,6 +169,15 @@ namespace PixelBeat.Gameplay
                 bool held = laneInput != null && laneInput.IsHeld(i);
                 keyBoxes[i].color = held ? keyPressedColor : keyIdleColor;
                 if (keyLabels[i] != null) keyLabels[i].color = held ? keyLabelPressedColor : keyLabelIdleColor;
+
+                bool holding = judgementSystem != null && judgementSystem.IsHolding(i);
+                laneGlows[i].enabled = holding;
+                if (holding && noteSpawner != null)
+                {
+                    var c = noteSpawner.LaneColor(i);
+                    c.a = holdGlowAlpha;
+                    laneGlows[i].color = c;
+                }
             }
 
             // Vuruş çizgisi her beat'te kısa parlar (ses-görüntü senkron kontrolü).
