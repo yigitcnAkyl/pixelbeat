@@ -3,6 +3,7 @@
     "defaultMode": "acceptEdits",
     "allow": [
       "Bash",
+      "PowerShell",
       "Edit",
       "Write",
       "Read",
@@ -13,7 +14,8 @@
       "mcp__UnityMCP"
     ],
     "deny": [
-      "Bash(rm -rf:*)"
+      "Bash(rm -rf:*)",
+      "PowerShell(Remove-Item -Recurse:*)"
     ]
   },
   "attribution": {
