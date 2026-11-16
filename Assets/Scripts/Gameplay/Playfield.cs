@@ -5,8 +5,9 @@ using UnityEngine;
 namespace PixelBeat.Gameplay
 {
     /// <summary>
-    /// Dikey oyun alanı düzeni (oyun pikseli, ekran merkezi = 0,0, genişlik 180, yükseklik telefona göre) ve statik görseller:
-    /// yarı saydam neon şerit panelleri, ayraçlar, vuruş çizgisi, dokunma göstergeleri. Ekran/safe area değişince yeniden kurulur.
+    /// Dikey oyun alanı düzeni (oyun pikseli, ekran merkezi = 0,0, genişlik 360, yükseklik telefona göre) ve statik görseller:
+    /// yarı saydam neon şerit panelleri, ayraçlar, vuruş çizgisi, şerit renginde ikonsuz neon dokunma düğmeleri (basınca dolar
+    /// ve additive hale ile parlar). Ekran/safe area değişince yeniden kurulur.
     /// Sprite'lar NeonSkin'den (paletten üretilmiş pixel art); 9-slice / döşeme ile tam piksel boyutlanır.
     /// </summary>
     public class Playfield : MonoBehaviour
@@ -24,13 +25,17 @@ namespace PixelBeat.Gameplay
         [SerializeField] private Sprite pixelSprite;
 
         [Header("Düzen")]
-        [SerializeField] private int laneWidthPx = 40;
+        [SerializeField] private int laneWidthPx = 80;
         [Tooltip("Vuruş çizgisinin safe area altından yüksekliği (safe area yüksekliğinin oranı).")]
         [SerializeField, Range(0.1f, 0.4f)] private float hitLineFromBottom = 0.2f;
         [Tooltip("Dokunma bölgesinin ekranın altından yüksekliği (ekran yüksekliğinin oranı).")]
         [SerializeField, Range(0.2f, 0.6f)] private float touchZoneHeight = 0.35f;
         [Tooltip("Dokunma göstergelerinin vuruş çizgisine ve safe area altına uzaklığı (piksel).")]
-        [SerializeField, Min(0)] private int keyPadMarginPx = 4;
+        [SerializeField, Min(0)] private int keyPadMarginPx = 8;
+        [Tooltip("Dokunma düğmesinin şerit kenarlarından içeri girintisi (piksel).")]
+        [SerializeField, Min(0)] private int keyPadInsetPx = 6;
+        [Tooltip("Basılı düğme halesinin gücü.")]
+        [SerializeField, Range(0f, 1f)] private float keyGlowAlpha = 0.8f;
 
         [Header("Görünüm")]
         [Tooltip("Şerit panelinin opaklığı (arka plan altından hafifçe görünsün).")]
@@ -46,6 +51,7 @@ namespace PixelBeat.Gameplay
         private SpriteRenderer[] laneGlows;
         private SpriteRenderer hitLine;
         private SpriteRenderer[] keyBoxes;
+        private SpriteRenderer[] keyGlows;
         private SpriteRenderer[] keyLabels;
         private float hitFlashTimer;
 
@@ -167,31 +173,41 @@ namespace PixelBeat.Gameplay
                 CreateRect($"Separator {i}", root, LaneLeftPx(i), bottom, 1, height, separatorColor, 1);
 
             hitLine = CreateSkinned("Hit Line", root, skin.HitLineIdle, SpriteDrawMode.Sliced,
-                FieldLeftPx - 1, HitLineYPx - 1, FieldWidthPx + 2, 3, 3);
+                FieldLeftPx - 1, HitLineYPx - 2, FieldWidthPx + 2, 4, 3);
 
-            // Dokunma göstergeleri: safe area altı ile vuruş çizgisi arası.
-            int padY = l.SafeBottomPx + keyPadMarginPx;
-            int padH = Mathf.Max(8, HitLineYPx - keyPadMarginPx - padY);
+            // Dokunma düğmeleri: safe area altı ile vuruş çizgisi arası; en fazla kare (konseptteki gibi), alana dikeyde ortalı.
+            int areaY = l.SafeBottomPx + keyPadMarginPx;
+            int areaH = Mathf.Max(8, HitLineYPx - keyPadMarginPx - areaY);
+            int boxW = laneWidthPx - 2 * keyPadInsetPx;
+            int padH = Mathf.Min(areaH, boxW);
+            int padY = areaY + (areaH - padH) / 2;
             bool showKeyLabels = Application.isEditor && laneInput != null;
+            int glowM = NeonSkin.ButtonGlowMarginPx;
 
             keyBoxes = new SpriteRenderer[LaneCount];
+            keyGlows = new SpriteRenderer[LaneCount];
             keyLabels = new SpriteRenderer[LaneCount];
             for (int i = 0; i < LaneCount; i++)
             {
-                int boxX = LaneLeftPx(i) + 3;
-                int boxW = laneWidthPx - 5;
-                keyBoxes[i] = CreateSkinned($"Key {i}", root, skin.KeyPadIdle, SpriteDrawMode.Sliced, boxX, padY, boxW, padH, 3);
+                int boxX = LaneLeftPx(i) + keyPadInsetPx;
+                keyBoxes[i] = CreateSkinned($"Key {i}", root, skin.KeyPadIdle(LaneColor(i)), SpriteDrawMode.Sliced, boxX, padY, boxW, padH, 3);
+                // Hale Tiled: dither deseni esnetilmez, döşenir.
+                keyGlows[i] = CreateSkinned($"Key Glow {i}", root, skin.KeyPadGlow(LaneColor(i)), SpriteDrawMode.Tiled,
+                    boxX - glowM, padY - glowM, boxW + 2 * glowM, padH + 2 * glowM, 2, additive: true);
+                keyGlows[i].color = new Color(1f, 1f, 1f, keyGlowAlpha);
+                keyGlows[i].enabled = false;
 
                 if (!showKeyLabels) continue;
                 string label = laneInput.GetKeyLabel(i);
                 var labelGo = new GameObject($"Key Label {i}");
                 labelGo.transform.SetParent(root, false);
+                labelGo.transform.localScale = new Vector3(ScreenLayout.UiScale, ScreenLayout.UiScale, 1f);
                 var sr = labelGo.AddComponent<SpriteRenderer>();
                 sr.sprite = PixelFont.CreateSprite(label, PixelsPerUnit);
                 sr.color = keyLabelIdleColor;
                 sr.sortingOrder = 4;
-                int lx = boxX + (boxW - PixelFont.MeasureWidth(label)) / 2;
-                int ly = padY + (padH - PixelFont.GlyphHeight) / 2;
+                int lx = boxX + (boxW - PixelFont.MeasureUiWidth(label)) / 2;
+                int ly = padY + (padH - PixelFont.UiGlyphHeight) / 2;
                 labelGo.transform.localPosition = new Vector3(lx / PixelsPerUnit, ly / PixelsPerUnit, 0f);
                 keyLabels[i] = sr;
             }
@@ -202,7 +218,8 @@ namespace PixelBeat.Gameplay
             for (int i = 0; i < LaneCount; i++)
             {
                 bool held = laneInput != null && laneInput.IsHeld(i);
-                keyBoxes[i].sprite = held ? skin.KeyPadPressed(LaneColor(i)) : skin.KeyPadIdle;
+                keyBoxes[i].sprite = held ? skin.KeyPadPressed(LaneColor(i)) : skin.KeyPadIdle(LaneColor(i));
+                keyGlows[i].enabled = held;
                 if (keyLabels[i] != null) keyLabels[i].color = held ? keyLabelPressedColor : keyLabelIdleColor;
 
                 bool holding = judgementSystem != null && judgementSystem.IsHolding(i);

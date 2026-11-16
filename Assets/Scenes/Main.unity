@@ -185,9 +185,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PixelBeat.UI.JudgementDisplay
   conductor: {fileID: 364336860}
   judgementSystem: {fileID: 275090369}
+  skin: {fileID: 11400000, guid: eacdb973dda2466499d1d63a5f160bd0, type: 2}
   yPx: 0
-  releaseLineOffsetPx: 10
+  releaseLineOffsetPx: 30
   displaySec: 0.4
+  glowAlpha: 0.7
   perfectColor:
     color: 7
     transparency: 0
@@ -215,12 +217,11 @@ MonoBehaviour:
   conductor: {fileID: 364336860}
   playfield: {fileID: 275090368}
   scrollTimeSec: 1
-  noteHeightPx: 6
-  holdBodyInsetPx: 9
-  holdTailHeightPx: 3
-  laneColors: 07000000090000000900000007000000
+  noteHeightPx: 26
+  laneColors: 070000000b000000090000000c000000
   missedColor: 4
-  glowAlpha: 0.35
+  glowAlpha: 0.45
+  holdingGlowAlpha: 0.9
 --- !u!114 &275090368
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -240,10 +241,12 @@ MonoBehaviour:
   noteSpawner: {fileID: 275090367}
   skin: {fileID: 11400000, guid: eacdb973dda2466499d1d63a5f160bd0, type: 2}
   pixelSprite: {fileID: 21300000, guid: 3470f2bc24394294f99f2ecd976a5545, type: 3}
-  laneWidthPx: 40
+  laneWidthPx: 80
   hitLineFromBottom: 0.2
   touchZoneHeight: 0.35
-  keyPadMarginPx: 4
+  keyPadMarginPx: 8
+  keyPadInsetPx: 6
+  keyGlowAlpha: 0.8
   panelAlpha: 0.82
   separatorColor:
     color: 3
@@ -404,10 +407,11 @@ MonoBehaviour:
   flashSec: 0.12
   perfectFlashAlpha: 0.9
   flashAlpha: 0.5
-  flashHeightPx: 48
-  upSpeed: {x: 40, y: 110}
-  sideSpeed: 45
-  gravity: 260
+  flashHeightPx: 96
+  upSpeed: {x: 80, y: 220}
+  sideSpeed: 90
+  gravity: 520
+  spawnSpreadPx: 24
   lifeSec: {x: 0.3, y: 0.55}
 --- !u!1 &364336859
 GameObject:
@@ -666,7 +670,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 12.1875
+  orthographic size: 24.375
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -711,8 +715,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.2D.Runtime::UnityEngine.Rendering.Universal.PixelPerfectCamera
   m_ComponentVersion: 1
   m_AssetsPPU: 16
-  m_RefResolutionX: 180
-  m_RefResolutionY: 320
+  m_RefResolutionX: 360
+  m_RefResolutionY: 640
   m_CropFrame: 0
   m_GridSnapping: 2
   m_FilterMode: 1
@@ -967,9 +971,9 @@ MonoBehaviour:
   playfield: {fileID: 275090368}
   screenLayout: {fileID: 519420034}
   hudButtons: {fileID: 669285179}
-  comboYPx: -4
+  comboYPx: -8
   comboScale: 2
-  healthBarHeightPx: 2
+  healthBarHeightPx: 4
   lowHealth: 30
   scoreColor:
     color: 6
@@ -1003,8 +1007,8 @@ MonoBehaviour:
   hudButtons: {fileID: 669285179}
   glyphs: {fileID: 11400000, guid: cb3915a024395d845ae376807562cac5, type: 2}
   showFromStreak: 5
-  labelCenterOffset: {x: -28, y: -26}
-  numberAbovePx: 14
+  labelCenterOffset: {x: -56, y: -52}
+  numberAbovePx: 28
   numberAlongPx: 0
   bumpSec: 0.15
   breakSec: 0.4

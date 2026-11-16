@@ -14,7 +14,7 @@ namespace PixelBeat.EditorTools.NeonArt
         private const string IncomingFolder = "Assets/Art/Incoming";
 
         [SerializeField] private Texture2D source;
-        [SerializeField] private int targetWidth = 180;
+        [SerializeField] private int targetWidth = 360;
         [SerializeField] private int targetHeight;
         [SerializeField] private bool keepAspect = true;
         [SerializeField] private int alphaThreshold = 128;

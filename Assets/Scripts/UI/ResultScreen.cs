@@ -11,7 +11,9 @@ namespace PixelBeat.UI
     public class ResultScreen : MonoBehaviour
     {
         private const int Order = 15;
-        private const int LineGap = 10;
+        /// <summary>UI ölçeği: aşağıdaki konumlar 180 px dönemindeki değerlerin bu katı.</summary>
+        private const int S = ScreenLayout.UiScale;
+        private const int LineGap = 10 * S;
 
         [SerializeField] private GameSession gameSession;
         [SerializeField] private Playfield playfield;
@@ -83,12 +85,12 @@ namespace PixelBeat.UI
 
             var k = gameSession.Keeper;
             string scoreStr = k.Score.ToString("0000000");
-            hint.Set("DOKUN: TEKRAR", 0, l.SafeBottomPx + 16, PixelText.Align.Center, textColor);
+            hint.Set("DOKUN: TEKRAR", 0, l.SafeBottomPx + 16 * S, PixelText.Align.Center, textColor);
 
             if (failed)
             {
-                headline.Set("FAILED", 0, 12, PixelText.Align.Center, failedColor, 3);
-                score.Set(scoreStr, 0, -4, PixelText.Align.Center, valueColor);
+                headline.Set("FAILED", 0, 12 * S, PixelText.Align.Center, failedColor, 3);
+                score.Set(scoreStr, 0, -4 * S, PixelText.Align.Center, valueColor);
                 special.Visible = maxCombo.Visible = false;
                 for (int i = 0; i < 4; i++) countLabels[i].Visible = countValues[i].Visible = false;
                 return;
@@ -98,21 +100,21 @@ namespace PixelBeat.UI
 
             // Derece: büyük harf, en üstte.
             var grade = k.Grade;
-            headline.Set(grade.ToString(), 0, 52, PixelText.Align.Center, GradeColor(grade), 4);
+            headline.Set(grade.ToString(), 0, 52 * S, PixelText.Align.Center, GradeColor(grade), 4);
 
             string specialText = k.IsAllPerfect ? "ALL PERFECT" : k.IsFullCombo ? "FULL COMBO" : "";
-            special.Set(specialText, 0, 40, PixelText.Align.Center, specialColor);
+            special.Set(specialText, 0, 40 * S, PixelText.Align.Center, specialColor);
 
-            score.Set(scoreStr, 0, 20, PixelText.Align.Center, valueColor, 2);
-            maxCombo.Set($"MAX COMBO {k.MaxCombo}", 0, 6, PixelText.Align.Center, textColor);
+            score.Set(scoreStr, 0, 20 * S, PixelText.Align.Center, valueColor, 2);
+            maxCombo.Set($"MAX COMBO {k.MaxCombo}", 0, 6 * S, PixelText.Align.Center, textColor);
 
             Color[] colors = { perfectColor, greatColor, goodColor, missColor };
             for (int i = 0; i < 4; i++)
             {
-                int y = -10 - i * LineGap;
+                int y = -10 * S - i * LineGap;
                 countLabels[i].Visible = countValues[i].Visible = true;
-                countLabels[i].Set(Labels[i], -45, y, PixelText.Align.Left, colors[i]);
-                countValues[i].Set(k.Count((Judgement)i).ToString(), 45, y, PixelText.Align.Right, valueColor);
+                countLabels[i].Set(Labels[i], -45 * S, y, PixelText.Align.Left, colors[i]);
+                countValues[i].Set(k.Count((Judgement)i).ToString(), 45 * S, y, PixelText.Align.Right, valueColor);
             }
         }
 

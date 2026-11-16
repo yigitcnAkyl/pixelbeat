@@ -17,22 +17,21 @@ namespace PixelBeat.Gameplay
         [Tooltip("Nota hızı: bir notanın ekranın üstünden vuruş çizgisine gelme süresi (sn). Küçük = hızlı.")]
         [SerializeField, Range(0.3f, 3f)] private float scrollTimeSec = 1.0f;
 
-        [Tooltip("Nota başı yüksekliği (piksel) — NeonSkin nota sprite'ı 6 px.")]
-        [SerializeField] private int noteHeightPx = 6;
-        [Tooltip("Hold gövdesinin şerit kenarlarından içeri girintisi (piksel).")]
-        [SerializeField] private int holdBodyInsetPx = 9;
-        [SerializeField] private int holdTailHeightPx = 3;
-        [Tooltip("Şerit renkleri (paletten; NeonSkin'de bu renklerin sprite'ları üretilmiş olmalı).")]
+        [Tooltip("Nota (elmas) yüksekliği (piksel) — ekrandan çıkış kontrolü için; NeonSkin elması 26 px.")]
+        [SerializeField] private int noteHeightPx = 26;
+        [Tooltip("Şerit renkleri (GDD §8: Cyan, Violet, Magenta, Lime; NeonSkin'de bu renklerin sprite'ları üretilmiş olmalı).")]
         [SerializeField] private PaletteColor[] laneColors =
         {
             PaletteColor.Cyan,
+            PaletteColor.Violet,
             PaletteColor.Magenta,
-            PaletteColor.Magenta,
-            PaletteColor.Cyan,
+            PaletteColor.Lime,
         };
         [SerializeField] private PaletteColor missedColor = PaletteColor.Ash;
         [Tooltip("Nota halesinin (additive) gücü.")]
-        [SerializeField, Range(0f, 1f)] private float glowAlpha = 0.35f;
+        [SerializeField, Range(0f, 1f)] private float glowAlpha = 0.45f;
+        [Tooltip("Hold tutulurken gövde halesinin gücü.")]
+        [SerializeField, Range(0f, 1f)] private float holdingGlowAlpha = 0.9f;
 
         private ObjectPool<NoteView> pool;
         private readonly List<NoteView> active = new List<NoteView>();
@@ -67,7 +66,7 @@ namespace PixelBeat.Gameplay
             var go = new GameObject("Note");
             go.transform.SetParent(transform, false);
             var view = go.AddComponent<NoteView>();
-            view.Init(playfield.Skin, 5, glowAlpha);
+            view.Init(playfield.Skin, 5, glowAlpha, holdingGlowAlpha);
             return view;
         }
 
@@ -117,7 +116,7 @@ namespace PixelBeat.Gameplay
                 int headY = YAt(headTime, songTime);
                 int tailY = note.IsHold ? YAt(note.EndTimeSec, songTime) : headY;
 
-                if (Mathf.Max(headY, tailY) + noteHeightPx < playfield.DespawnYPx)
+                if (Mathf.Max(headY, tailY) + noteHeightPx / 2 < playfield.DespawnYPx)
                 {
                     Release(i);
                     continue;
@@ -125,7 +124,8 @@ namespace PixelBeat.Gameplay
 
                 bool missed = note.State == NoteState.Missed;
                 view.SetColor(missed ? missedColor : laneColors[note.Lane], missed);
-                view.Place(playfield.LaneLeftPx(note.Lane), laneW, headY, noteHeightPx, tailY, holdBodyInsetPx, holdTailHeightPx);
+                if (note.IsHold) view.SetHolding(note.State == NoteState.Holding);
+                view.Place(playfield.LaneLeftPx(note.Lane), laneW, headY, tailY);
             }
         }
 

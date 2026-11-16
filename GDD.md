@@ -134,10 +134,23 @@ Oyuncu ritmi çoğunlukla **sözlerden/şarkıcının sesinden** takip eder (kul
   - Lumière: kapı 5.9–122.2 ve 147.3–196.5 sn (6.0 sn'de vokal stem'inde güçlü bir giriş hecesi var, ölçümdeki ~8 sn'den erken), kapı dışı 121 nota atıldı, 41 nota → 382 hece. Kolay 283 nota (vokal 223 / enstrüman 60), Normal 356 (281 / 75), Zor 474 (382 / 92, 43 akor). Geçişlerde komşu 4 sn yoğunluk farkı ≤ 0.7 nota/sn.
 
 ## 8. Görsel / Teknik
-- **Çözünürlük (dikey):** Genişlik **180 px sabit**, yükseklik telefonun en-boy oranına göre uzar (16:9'da 320, uzun telefonlarda ~360–400). Pixel Perfect Camera ile tam sayı büyütme (1080 px genişlikli telefonda 6x). Önemli öğeler (şeritler, vuruş çizgisi) güvenli alanda kalmalı; çentik/kamera deliği için Screen.safeArea dikkate alınır.
+- **Çözünürlük (dikey):** Genişlik **360 px sabit** (önceden 180; konsept görseldeki detay için 2 katına çıkarıldı), yükseklik telefonun en-boy oranına göre uzar (~640–800). Pixel Perfect Camera ile tam sayı büyütme (1080 px genişlikli telefonda 3x). Önemli öğeler (şeritler, vuruş çizgisi) güvenli alanda kalmalı; çentik/kamera deliği için Screen.safeArea dikkate alınır.
 - **Kare hızı:** Application.targetFrameRate = 60 (destekleyen telefonlarda 120 seçeneği sonra).
 - **Sprite ayarları:** Filter Mode = Point, Compression = None, tüm sprite'larda aynı Pixels Per Unit.
-- **Yerleşim (öneri):** 4 şerit ekran genişliğini neredeyse doldurur (her biri ~40 px), vuruş çizgisi alttan ~%20 yukarıda, altında dokunma göstergeleri (basınca yanar). Üstte can barı ve skor, ortada combo/değerlendirme yazısı.
+- **Yerleşim (öneri):** 4 şerit ekran genişliğini neredeyse doldurur (her biri ~80 px), **düz** (perspektif yok — okunurluk için), vuruş çizgisi alttan ~%20 yukarıda, altında dokunma düğmeleri. Üstte can barı ve skor, ortada combo/değerlendirme yazısı.
+- **Sanat yönü (konsept: `Docs/ui_konsept.png`, Gemini ile üretildi):** Konsept bir stil rehberidir; birebir kopyalanmaz, 360 px pixel art'a uyarlanır.
+  - **Şerit renkleri (her şerit ayrı):** 0 = Cyan, 1 = Violet, 2 = Magenta, 3 = Lime. Nota, hold, dokunma düğmesi ve şerit parlaması o şeridin renginde.
+  - **Dokunma düğmeleri:** Şerit renginde neon çerçeveli yuvarlak köşeli kare, **ikon yok** (ok/daire gibi ikonlar "kaydır" hissi verir, bizde kaydırma yok). Basınca dolar ve parlar.
+  - **Tap nota:** Neon çerçeveli **elmas (◇)**, içi koyu, etrafında hale.
+  - **Hold nota:** Elmas baş + şerit renginde parlayan ışın gövde (kenarlarda koyu, ortada açık), kuyrukta küçük elmas. Tutulurken gövde parlaklaşır.
+  - **Değerlendirme yazıları:** Kalın, sağa yatık (italik) pixel font, 2–3 tonlu dikey renk geçişi + koyu dış hat + ünlem: `PERFECT!` (cyan→magenta), `GREAT!` (lime→cyan), `GOOD!` (gold), `MISS!` (red→magenta).
+  - **Logo:** "PixelBeat" — kalın, yuvarlak hatlı, cyan→magenta geçişli, neon dış hatlı pixel yazı.
+  - **Butonlar:** Koyu iç, neon çerçeve (cyan veya magenta), büyük harf yazı, solda küçük ikon olabilir (▶ OYNA, ⚙ AYARLAR).
+  - Arka plan: mevcut neon güneş + şehir + perspektifli ızgara kalır (şeritler düz, ızgara sadece arka planda).
+  - **Uygulama (360 px):** Şerit 80 px. Tap nota 26 px elmas (1 px koyu kenar, 2 px şerit rengi çerçeve, üst yarıda beyaz iç çizgi, koyu iç, ortada küçük taş) + 40 px additive dither hale. Hold: 12 px ışın (kenar koyu → renk → beyaz merkez, dikey döşenir) + 28 px ışın halesi (tutulurken alfa 0.45 → 0.9) + 14 px kuyruk elması. Dokunma düğmesi: yuvarlak köşeli 9-slice, kare (genişlik ≤ şerit − 12 px), basılıyken dolu + Tiled hale.
+  - Değerlendirme yazıları hazır sprite: 5x7 font 3x + 1 px kalınlaştırma, 3 satırda 1 px italik, geçiş PERFECT! Cyan→Violet→Magenta, GREAT! Lime→Cyan, GOOD! Gold→Orange, MISS! Red→Magenta; üst satır beyaz, sağ-alt koyu gölge, Void dış hat, 4 px üst renk hale. Logo: 5x7 glif 3x (+2 px kalın), yuvarlatılmış köşe, Cyan→Violet→Magenta, Void + Magenta dış hat, 5 px hale. Buton çerçevesi (Cyan / Magenta), ▶ ve ⚙ ikonları menü için hazır (HUD butonları bu çerçeveyi kullanır).
+  - **Yazılar (HUD, kalibrasyon, sonuç, streak):** 5x7 font `ScreenLayout.UiScale` = 2 ile çizilir (180 px dönemindeki boyutlar). Bu yüzden ekranda iki piksel boyutu bir arada (yazılar 2x, yeni sanat 1x); sonra detaylı 2x font çizilebilir.
+  - Kontrol görüntüleri: `Docs/ui_360_oyun.png` (oyun), `Docs/ui_360_sanat.png` (*PixelBeat > Sanat Önizlemesi*: tüm sprite'lar tek tuvalde).
 - **Geri bildirim:** Vuruşta şerit parlaması, değerlendirme yazısı (PERFECT / GREAT / GOOD / MISS), combo sayacı.
   - Vuruşta şeritte vuruş çizgisinden yukarı additive dither parlama + 1–2 px parçacıklar. Perfect: beyaz parlama, daha uzun (~0.18 sn), 10 parçacık (beyaz + şerit rengi); Great 6, Good 3 (şerit rengi); Miss yok. Hold bırakışında yarısı.
 - **Neon paleti (16 renk)** — tüm placeholder renkler buradan seçilir (kodda `PaletteColor` / `PaletteRef`, serbest renk girilemez):
@@ -151,20 +164,20 @@ Oyuncu ritmi çoğunlukla **sözlerden/şarkıcının sesinden** takip eder (kul
   | 4 | Ash | `#505068` | kaçan nota |
   | 5 | Haze | `#8A8AB0` | soluk yazı, vuruş çizgisi |
   | 6 | White | `#FFFFFF` | parlama, skor |
-  | 7 | Cyan | `#33FFFF` | şerit 0/3, Perfect |
+  | 7 | Cyan | `#33FFFF` | şerit 0, Perfect |
   | 8 | Teal | `#1C8C9C` | cyan gölge / hold gövdesi |
-  | 9 | Magenta | `#FF40C0` | şerit 1/2, combo |
+  | 9 | Magenta | `#FF40C0` | şerit 2, combo |
   | 10 | Plum | `#8E2470` | magenta gölge, ufuk |
-  | 11 | Violet | `#7A4DFF` | arka plan ızgarası |
-  | 12 | Lime | `#66FF66` | Great |
+  | 11 | Violet | `#7A4DFF` | şerit 1, arka plan ızgarası |
+  | 12 | Lime | `#66FF66` | şerit 3, Great |
   | 13 | Gold | `#FFD040` | Good, S derecesi, güneş |
   | 14 | Orange | `#FF8A3D` | güneş |
   | 15 | Red | `#FF4060` | Miss, FAILED, düşük can |
-- **Placeholder pixel art:** Editor'de kodla, sadece paletten üretilir (*PixelBeat > Bake Neon Sprites* → `Assets/Art/Neon/`, `Assets/Data/NeonSkin.asset`): nota başı, hold gövdesi/kuyruğu, nota halesi, dokunma göstergesi (boşta/basılı), vuruş çizgisi (normal/parlak), şerit paneli, şerit parlaması, parçacıklar, arka plan. 9-slice / döşeme ile boyutlanır (ölçekleme yok). Çok tonlu sprite'lar renk başına ayrı üretilir. PNG'ler elle çizilenlerle değiştirilebilir.
+- **Placeholder pixel art:** Editor'de kodla, sadece paletten üretilir (*PixelBeat > Bake Neon Sprites* → `Assets/Art/Neon/`, `Assets/Data/NeonSkin.asset`): elmas nota + hale, hold ışını + hale, kuyruk elması + hale, dokunma düğmesi (boşta/basılı/hale, şerit renginde), değerlendirme yazıları + hale, logo + hale, buton çerçevesi + hale, ▶/⚙ ikonları, vuruş çizgisi (normal/parlak), şerit paneli, şerit parlaması, parçacıklar, 360 px arka plan. 9-slice / döşeme ile boyutlanır (ölçekleme yok). Çok tonlu sprite'lar renk başına ayrı üretilir. PNG'ler elle çizilenlerle değiştirilebilir.
 - **Neon parlama:** Bloom kullanılmaz (pixel art'ı bulanıklaştırır, telefonda pahalı). Notaların ve parlamaların arkasında önceden çizilmiş dither'lı hale sprite'ları additive (`PixelBeat/SpriteAdditive`) çizilir.
 - **Arka plan:** Koyu gökyüzü + şeritli neon güneş + şehir silüeti (sprite, pivot = ufuk) ve ufuktan akan perspektifli neon ızgara çizgileri. Şerit paneli yarı saydam (arka plan altından görünür). AI ile çizilmiş görsel `NeonBackground > Background Sprite` alanına konarak değiştirilebilir.
 - **CRT:** Ekran çözünürlüğünde hafif scanline (her oyun pikseli satırının alt ~1/3'ü) + hafif vinyet. Aç/kapat: kalibrasyon ekranındaki "CRT" butonu (PlayerPrefs'e kaydedilir), varsayılan açık.
-- **AI görsel içe aktarma:** `Assets/Art/Incoming/` → *PixelBeat > AI Görsel İçe Aktar*: seçilen piksel boyutuna nearest-neighbor küçültme, palete indirgeme (OKLab'de en yakın renk, isteğe bağlı 2x2 Bayer dither), Point / sıkıştırmasız / PPU 16 sprite olarak `Assets/Art/Imported/`.
+- **AI görsel içe aktarma:** `Assets/Art/Incoming/` → *PixelBeat > AI Görsel İçe Aktar*: seçilen piksel boyutuna nearest-neighbor küçültme, palete indirgeme (OKLab'de en yakın renk, isteğe bağlı 2x2 Bayer dither), Point / sıkıştırmasız / PPU tutarlı sprite olarak `Assets/Art/Imported/`.
 
 ## 9. Ses
 - Telifsiz müzik kullanılacak. BPM bilgisi şarkının kaynağından alınır.
@@ -193,3 +206,13 @@ Prototip: **1 şarkı, sadece oynanış.** Menü, şarkı seçimi, kayıt yok.
 7. **Neon görünüm:** Placeholder pixel art, efektler, geri bildirim. ✅ (telefonda build/FPS testi bekliyor (Unity Hub tamamen yeniden başlatılınca yapılacak))
 
 Sonrası (prototip dışı): ana menü, şarkı seçimi, ayarlar ekranı, birden fazla zorluk, skor kaydı, Google Play yayını.
+
+## 11. Arayüz (UI) — prototip sonrası ilk iş
+Ekranlar (hepsi dikey, 360 px genişlik, §8 sanat yönüne uygun, dokunmatik):
+- **Ana menü:** Üstte "PixelBeat" logosu, altında büyük **OYNA** ve **AYARLAR** butonları. Arka planda neon arka plan ve hafif animasyon.
+- **Şarkı listesi:** Dikey kaydırılabilir liste. Her satırda şarkı adı, sanatçı, süre ve o şarkıdaki **en iyi derece**. Şarkı seçilince: harita türü (**Vokal / Melodi**, sadece mevcut olanlar) ve zorluk (**Kolay / Normal / Zor**) seçimi, her zorluğun yanında en yüksek skor + derece. **BAŞLA** butonu. Şarkılar bir şarkı kataloğundan (ScriptableObject) gelir; yeni şarkı eklemek = kataloğa satır eklemek.
+- **Ayarlar:** Nota hızı (kaydırıcı, canlı önizleme), ses offset'i (ms, +/−) ve **KALİBRE ET** (mevcut kalibrasyon ekranı), müzik sesi, efekt sesi, CRT aç/kapa. PlayerPrefs'e kaydedilir.
+- **Oyun ekranı:** Mevcut HUD (skor, can, combo, streak) yeni stile uyarlanır. Duraklatma menüsü bu adımda yok; uygulama arka plana giderse şimdilik şarkı baştan başlar.
+- **Sonuç ekranı:** Yeni stilde büyük harf derecesi, skor, max combo, Perfect/Great/Good/Miss sayıları, FULL COMBO / ALL PERFECT rozeti, **YENİ REKOR** göstergesi; **TEKRAR** ve **MENÜ** butonları. FAILED ekranı da aynı butonlarla.
+- **Skor kaydı:** Şarkı + harita türü + zorluk başına en yüksek skor, derece, max combo, FC/AP bilgisi (PlayerPrefs ya da JSON dosya).
+- Ekranlar arası geçiş: kısa neon fade/kaydırma; geri tuşu (Android back) bir önceki ekrana döner.

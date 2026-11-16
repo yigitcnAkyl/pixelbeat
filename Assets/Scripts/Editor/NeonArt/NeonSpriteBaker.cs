@@ -31,32 +31,60 @@ namespace PixelBeat.EditorTools.NeonArt
                 AssetDatabase.CreateAsset(mat, MaterialPath);
             }
 
-            var heads = new Sprite[NeonSkin.PaletteSize];
-            var bodies = new Sprite[NeonSkin.PaletteSize];
-            var tails = new Sprite[NeonSkin.PaletteSize];
-            var glows = new Sprite[NeonSkin.PaletteSize];
-            var pressed = new Sprite[NeonSkin.PaletteSize];
-            var flashes = new Sprite[NeonSkin.PaletteSize];
+            // Eski (180 px dönemi) PNG'ler: artık üretilmeyenler silinir ki klasörde karışmasın.
+            foreach (var old in new[] { "note_head_", "hold_body_", "hold_tail_", "note_glow_", "keypad_pressed_", "lane_flash_" })
+            foreach (var c in NeonSkin.AccentColors)
+                AssetDatabase.DeleteAsset($"{Folder}/{old}{c.ToString().ToLowerInvariant()}.png");
+            AssetDatabase.DeleteAsset($"{Folder}/keypad_idle.png");
+
+            var b = new NeonSkin.BakedSet { Additive = mat };
+            var simple = new NeonPixelArt.Spec();
 
             foreach (var c in NeonSkin.AccentColors)
             {
                 string n = c.ToString().ToLowerInvariant();
                 int i = (int)c;
-                heads[i] = Write(NeonPixelArt.NoteHead(c), $"note_head_{n}", NeonPixelArt.NoteHeadSpec);
-                bodies[i] = Write(NeonPixelArt.HoldBody(c), $"hold_body_{n}", NeonPixelArt.HoldBodySpec);
-                tails[i] = Write(NeonPixelArt.HoldTail(c), $"hold_tail_{n}", NeonPixelArt.HoldTailSpec);
-                glows[i] = Write(NeonPixelArt.NoteGlow(c), $"note_glow_{n}", NeonPixelArt.NoteGlowSpec);
-                pressed[i] = Write(NeonPixelArt.KeyPad(c, Palette.DarkOf(c), PaletteColor.White), $"keypad_pressed_{n}", NeonPixelArt.KeyPadSpec);
-                flashes[i] = Write(NeonPixelArt.LaneFlash(c), $"lane_flash_{n}", NeonPixelArt.LaneFlashSpec);
+                b.NoteHead[i] = Write(NeonPixelArt.Diamond(c), $"note_{n}", simple);
+                b.NoteGlow[i] = Write(NeonPixelArt.DiamondHalo(c), $"note_halo_{n}", simple);
+                b.HoldTail[i] = Write(NeonPixelArt.Diamond(c, NeonPixelArt.TailSize), $"hold_tail_{n}", simple);
+                b.TailGlow[i] = Write(NeonPixelArt.DiamondHalo(c, NeonPixelArt.TailSize), $"hold_tail_halo_{n}", simple);
+                b.HoldBody[i] = Write(NeonPixelArt.Beam(c), $"hold_beam_{n}", NeonPixelArt.BeamSpec);
+                b.HoldGlow[i] = Write(NeonPixelArt.BeamGlow(c), $"hold_beam_glow_{n}", NeonPixelArt.BeamGlowSpec);
+                b.KeyPadIdle[i] = Write(NeonPixelArt.KeyPadIdle(c), $"key_{n}", NeonPixelArt.KeyPadSpec);
+                b.KeyPadPressed[i] = Write(NeonPixelArt.KeyPadPressed(c), $"key_pressed_{n}", NeonPixelArt.KeyPadSpec);
+                b.KeyPadGlow[i] = Write(NeonPixelArt.FrameGlow(c), $"key_glow_{n}", NeonPixelArt.KeyGlowSpec);
+                b.ButtonFrame[i] = Write(NeonPixelArt.ButtonFrame(c), $"button_{n}", NeonPixelArt.ButtonSpec);
+                b.ButtonGlow[i] = b.KeyPadGlow[i];
+                b.LaneFlash[i] = Write(NeonPixelArt.LaneFlash(c), $"flash_{n}", NeonPixelArt.LaneFlashSpec);
             }
 
-            var lane = Write(NeonPixelArt.LanePanel(), "lane_panel", NeonPixelArt.LanePanelSpec);
-            var hitIdle = Write(NeonPixelArt.HitLine(PaletteColor.Haze, PaletteColor.Steel), "hitline_idle", NeonPixelArt.HitLineSpec);
-            var hitBeat = Write(NeonPixelArt.HitLine(PaletteColor.White, PaletteColor.Haze), "hitline_beat", NeonPixelArt.HitLineSpec);
-            var keyIdle = Write(NeonPixelArt.KeyPad(PaletteColor.Steel, PaletteColor.Night, PaletteColor.Slate), "keypad_idle", NeonPixelArt.KeyPadSpec);
-            var p1 = Write(NeonPixelArt.Solid(1, PaletteColor.White), "particle_1", new NeonPixelArt.Spec { W = 1, H = 1 });
-            var p2 = Write(NeonPixelArt.Solid(2, PaletteColor.White), "particle_2", new NeonPixelArt.Spec { W = 2, H = 2 });
-            var sky = Write(NeonPixelArt.Sky(), "sky", new NeonPixelArt.Spec { W = NeonPixelArt.SkyWidth, H = NeonPixelArt.SkyHeight },
+            var wordDefs = new (string text, PaletteColor[] colors)[]
+            {
+                ("PERFECT!", new[] { PaletteColor.Cyan, PaletteColor.Violet, PaletteColor.Magenta }),
+                ("GREAT!", new[] { PaletteColor.Lime, PaletteColor.Cyan }),
+                ("GOOD!", new[] { PaletteColor.Gold, PaletteColor.Orange }),
+                ("MISS!", new[] { PaletteColor.Red, PaletteColor.Magenta }),
+            };
+            for (int i = 0; i < wordDefs.Length; i++)
+            {
+                var word = NeonPixelArt.Word(wordDefs[i].text, wordDefs[i].colors);
+                string n = wordDefs[i].text.TrimEnd('!').ToLowerInvariant();
+                b.Words[i] = Write(word, $"word_{n}", simple, Vector2.zero);
+                b.WordGlows[i] = Write(NeonPixelArt.WordGlow(word, wordDefs[i].colors[0]), $"word_{n}_glow", simple, Vector2.zero);
+            }
+
+            var logo = NeonPixelArt.Logo();
+            b.Logo = Write(logo, "logo", simple);
+            b.LogoGlow = Write(NeonPixelArt.GlowAround(logo, PaletteColor.Magenta, NeonPixelArt.LogoGlowMargin), "logo_glow", simple);
+            b.IconPlay = Write(NeonPixelArt.IconPlay(PaletteColor.Cyan), "icon_play", simple);
+            b.IconGear = Write(NeonPixelArt.IconGear(PaletteColor.Magenta), "icon_gear", simple);
+
+            b.LanePanel = Write(NeonPixelArt.LanePanel(), "lane_panel", NeonPixelArt.LanePanelSpec);
+            b.HitLineIdle = Write(NeonPixelArt.HitLine(PaletteColor.Haze, PaletteColor.Steel), "hitline_idle", NeonPixelArt.HitLineSpec);
+            b.HitLineBeat = Write(NeonPixelArt.HitLine(PaletteColor.White, PaletteColor.Haze), "hitline_beat", NeonPixelArt.HitLineSpec);
+            b.Particle1 = Write(NeonPixelArt.Solid(2, PaletteColor.White), "particle_1", new NeonPixelArt.Spec { W = 2, H = 2 });
+            b.Particle2 = Write(NeonPixelArt.Solid(3, PaletteColor.White), "particle_2", new NeonPixelArt.Spec { W = 3, H = 3 });
+            b.Sky = Write(NeonPixelArt.Sky(), "sky", new NeonPixelArt.Spec { W = NeonPixelArt.SkyWidth, H = NeonPixelArt.SkyHeight },
                 new Vector2(0.5f, NeonPixelArt.SkyHorizon / (float)NeonPixelArt.SkyHeight));
 
             var skin = AssetDatabase.LoadAssetAtPath<NeonSkin>(SkinPath);
@@ -65,7 +93,7 @@ namespace PixelBeat.EditorTools.NeonArt
                 skin = ScriptableObject.CreateInstance<NeonSkin>();
                 AssetDatabase.CreateAsset(skin, SkinPath);
             }
-            skin.SetBaked(mat, lane, hitIdle, hitBeat, keyIdle, p1, p2, sky, heads, bodies, tails, glows, pressed, flashes);
+            skin.SetBaked(b);
             EditorUtility.SetDirty(skin);
             AssetDatabase.SaveAssets();
             Debug.Log($"[NeonSpriteBaker] Sprite'lar üretildi → {Folder}, skin → {SkinPath}");

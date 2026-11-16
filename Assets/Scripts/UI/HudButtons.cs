@@ -11,7 +11,7 @@ namespace PixelBeat.UI
     /// </summary>
     public class HudButtons : MonoBehaviour
     {
-        private const int MarginPx = 4;
+        private const int MarginPx = 4 * ScreenLayout.UiScale;
 
         [SerializeField] private Playfield playfield;
         [SerializeField] private ScreenLayout screenLayout;
@@ -32,7 +32,7 @@ namespace PixelBeat.UI
         private void Awake()
         {
             calButton = new PixelButton(playfield, transform, "CAL", 20);
-            restartButton = new PixelButton(playfield, transform, "R", 20);
+            restartButton = new PixelButton(playfield, transform, "R", 20, PaletteColor.Magenta);
             Layout();
             if (gameSession != null) gameSession.IgnoreTouchAt = Contains;
         }
@@ -52,9 +52,9 @@ namespace PixelBeat.UI
         private void Layout()
         {
             int y = RowBottomPx;
-            calButton.Place(screenLayout.LeftPx + MarginPx + 1, y);
+            calButton.Place(screenLayout.LeftPx + MarginPx + 2, y);
             int rw = PixelButton.Height; // kare
-            restartButton.Place(screenLayout.RightPx - MarginPx - 1 - rw, y, rw);
+            restartButton.Place(screenLayout.RightPx - MarginPx - 2 - rw, y, rw);
         }
 
         private void Update()

@@ -11,6 +11,11 @@ namespace PixelBeat.UI
     public class ScoreHud : MonoBehaviour
     {
         private const int Order = 20;
+        /// <summary>HUD buton sırası ile can barı arası (piksel).</summary>
+        public const int BarGapPx = 4 * ScreenLayout.UiScale;
+
+        /// <summary>Can barının alt kenarı (StreakDisplay buna göre yerleşir).</summary>
+        public int HealthBarBottomPx => hudButtons.RowBottomPx - BarGapPx - healthBarHeightPx;
 
         [SerializeField] private GameSession gameSession;
         [SerializeField] private Playfield playfield;
@@ -18,9 +23,10 @@ namespace PixelBeat.UI
         [SerializeField] private HudButtons hudButtons;
 
         [Tooltip("Combo sayısının üst kenarı (piksel, ekran merkezine göre). Değerlendirme yazısının alt kenarı y = 0'da.")]
-        [SerializeField] private int comboYPx = -4;
+        [SerializeField] private int comboYPx = -8;
+        [Tooltip("UI ölçeğinin (ScreenLayout.UiScale) üstüne ek büyütme.")]
         [SerializeField, Range(1, 4)] private int comboScale = 2;
-        [SerializeField, Min(1)] private int healthBarHeightPx = 2;
+        [SerializeField, Min(1)] private int healthBarHeightPx = 4;
         [Tooltip("Can bu değerin altına inince bar kırmızı olur.")]
         [SerializeField, Range(0, 100)] private int lowHealth = 30;
 
@@ -56,7 +62,7 @@ namespace PixelBeat.UI
             int row = hudButtons.RowBottomPx;
             barX = playfield.FieldLeftPx;
             barW = playfield.FieldWidthPx;
-            barY = row - 4 - healthBarHeightPx;
+            barY = row - BarGapPx - healthBarHeightPx;
             Playfield.PlaceRect(healthBack.transform, barX, barY, barW, healthBarHeightPx, playfield.PixelSprite.rect.width);
             shownScore = shownCombo = shownHealth = -1; // yeniden çiz
         }
@@ -79,7 +85,7 @@ namespace PixelBeat.UI
             {
                 shownScore = k.Score;
                 int row = hudButtons.RowBottomPx;
-                scoreText.Set(k.Score.ToString("0000000"), 0, row + (PixelButton.Height - PixelFont.GlyphHeight) / 2,
+                scoreText.Set(k.Score.ToString("0000000"), 0, row + (PixelButton.Height - PixelFont.UiGlyphHeight) / 2,
                     PixelText.Align.Center, scoreColor);
             }
 
@@ -95,7 +101,7 @@ namespace PixelBeat.UI
             if (k.Combo != shownCombo)
             {
                 shownCombo = k.Combo;
-                if (k.Combo > 0) comboText.Set(k.Combo.ToString(), 0, comboYPx - PixelFont.GlyphHeight * comboScale,
+                if (k.Combo > 0) comboText.Set(k.Combo.ToString(), 0, comboYPx - PixelFont.UiGlyphHeight * comboScale,
                     PixelText.Align.Center, comboColor, comboScale);
             }
             comboText.Visible = k.Combo > 0;

@@ -4,15 +4,21 @@ using UnityEngine;
 namespace PixelBeat.Core
 {
     /// <summary>
-    /// Dikey ekran ölçüleri (oyun pikseli, ekran merkezi = 0,0). Genişlik 180 px referanstır, yükseklik telefona göre uzar.
+    /// Dikey ekran ölçüleri (oyun pikseli, ekran merkezi = 0,0). Genişlik 360 px referanstır, yükseklik telefona göre uzar.
     /// Pixel Perfect Camera ile aynı tam sayı büyütmeyi (zoom) hesaplar; Screen.safeArea boşluklarını oyun pikseline çevirir.
     /// Ekran boyutu ya da safe area değişirse <see cref="Changed"/> yayınlanır (Editor'de Game view boyutu değişince).
     /// </summary>
     [DefaultExecutionOrder(-90)]
     public class ScreenLayout : MonoBehaviour
     {
-        public const int ReferenceWidthPx = 180;
-        public const int ReferenceHeightPx = 320;
+        public const int ReferenceWidthPx = 360;
+        public const int ReferenceHeightPx = 640;
+
+        /// <summary>
+        /// 5x7 pixel font yazıları (HUD, butonlar, kalibrasyon, sonuç, streak) bu tam sayı büyütmeyle çizilir;
+        /// 360 px'te 180 px dönemindeki boyutlarında görünürler. Yeni sanat (nota, düğme, kelimeler, logo) 1x tam detay.
+        /// </summary>
+        public const int UiScale = 2;
 
         private int screenW = -1;
         private int screenH = -1;

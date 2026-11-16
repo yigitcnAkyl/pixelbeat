@@ -1,3 +1,4 @@
+using PixelBeat.Core;
 using PixelBeat.Gameplay;
 using UnityEngine;
 
@@ -23,7 +24,7 @@ namespace PixelBeat.UI
 
         /// <param name="xPx">Hizalama noktası (oyun pikseli)</param>
         /// <param name="yPx">Yazının alt kenarı (oyun pikseli)</param>
-        /// <param name="scale">Tam sayı büyütme (pixel art bozulmaz). Hizalama büyütülmüş genişliğe göre.</param>
+        /// <param name="scale">Tam sayı büyütme (pixel art bozulmaz), <see cref="ScreenLayout.UiScale"/> ile çarpılır. Hizalama büyütülmüş genişliğe göre.</param>
         public void Set(string newText, int xPx, int yPx, Align align, Color color, int scale = 1)
         {
             if (newText != text)
@@ -33,7 +34,7 @@ namespace PixelBeat.UI
                 sr.sprite = string.IsNullOrEmpty(text) ? null : PixelFont.CreateSprite(text, Playfield.PixelsPerUnit);
             }
 
-            scale = Mathf.Max(1, scale);
+            scale = Mathf.Max(1, scale) * ScreenLayout.UiScale;
             transform.localScale = new Vector3(scale, scale, 1f);
             int w = PixelFont.MeasureWidth(text) * scale;
             int x = align == Align.Left ? xPx : align == Align.Center ? xPx - w / 2 : xPx - w;

@@ -23,12 +23,14 @@ namespace PixelBeat.Gameplay
         [SerializeField, Min(0.01f)] private float flashSec = 0.12f;
         [SerializeField, Range(0f, 1f)] private float perfectFlashAlpha = 0.9f;
         [SerializeField, Range(0f, 1f)] private float flashAlpha = 0.5f;
-        [SerializeField, Min(8)] private int flashHeightPx = 48;
+        [SerializeField, Min(8)] private int flashHeightPx = 96;
 
         [Header("Parçacıklar (piksel / sn)")]
-        [SerializeField] private Vector2 upSpeed = new Vector2(40f, 110f);
-        [SerializeField, Min(0f)] private float sideSpeed = 45f;
-        [SerializeField, Min(0f)] private float gravity = 260f;
+        [SerializeField] private Vector2 upSpeed = new Vector2(80f, 220f);
+        [SerializeField, Min(0f)] private float sideSpeed = 90f;
+        [SerializeField, Min(0f)] private float gravity = 520f;
+        [Tooltip("Parçacıkların doğduğu yatay yayılma (± piksel, şerit merkezinden).")]
+        [SerializeField, Min(0f)] private float spawnSpreadPx = 24f;
         [SerializeField] private Vector2 lifeSec = new Vector2(0.3f, 0.55f);
 
         private const int FlashOrder = 2;
@@ -118,7 +120,7 @@ namespace PixelBeat.Gameplay
 
             // Parçacıklar
             int count = ParticleCountFor(result, kind);
-            var origin = new Vector2(playfield.LaneCenterPx(lane), playfield.HitLineYPx + 1);
+            var origin = new Vector2(playfield.LaneCenterPx(lane), playfield.HitLineYPx + 2);
             for (int k = 0; k < count; k++)
             {
                 var c = perfect && (k & 1) == 0 ? PaletteColor.White : laneColor;
@@ -134,7 +136,7 @@ namespace PixelBeat.Gameplay
             float Rand(float a, float b) => a + (float)rnd.NextDouble() * (b - a);
             particles[i] = new Particle
             {
-                Pos = origin + new Vector2(Rand(-12f, 12f), 0f),
+                Pos = origin + new Vector2(Rand(-spawnSpreadPx, spawnSpreadPx), 0f),
                 Vel = new Vector2(Rand(-sideSpeed, sideSpeed), Rand(upSpeed.x, upSpeed.y)) * speedScale,
                 Age = 0f,
                 Life = Rand(lifeSec.x, lifeSec.y),

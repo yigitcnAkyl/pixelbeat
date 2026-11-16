@@ -26,9 +26,9 @@ namespace PixelBeat.UI
 
         [Header("Konum (piksel)")]
         [Tooltip("PERFECT'in merkezi: safe area sağ kenarı ve can barının altına göre.")]
-        [SerializeField] private Vector2Int labelCenterOffset = new Vector2Int(-28, -26);
+        [SerializeField] private Vector2Int labelCenterOffset = new Vector2Int(-56, -52);
         [Tooltip("Sayının merkezi, PERFECT merkezinden dönük 'yukarı' yönde bu kadar uzakta.")]
-        [SerializeField] private int numberAbovePx = 14;
+        [SerializeField] private int numberAbovePx = 28;
         [Tooltip("Sayının merkezi, dönük yazı yönünde (+ = sağ-aşağı) kaydırma.")]
         [SerializeField] private int numberAlongPx = 0;
 
@@ -77,6 +77,7 @@ namespace PixelBeat.UI
         {
             var go = new GameObject(objName);
             go.transform.SetParent(root, false);
+            go.transform.localScale = new Vector3(ScreenLayout.UiScale, ScreenLayout.UiScale, 1f); // 5x7 font tabanlı glifler
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sortingOrder = Order;
             return sr;
@@ -144,8 +145,8 @@ namespace PixelBeat.UI
             var along = new Vector2(Mathf.Cos(rad), -Mathf.Sin(rad));
             var up = new Vector2(Mathf.Sin(rad), Mathf.Cos(rad));
 
-            // Can barının alt kenarı: HUD sırasının 4 px altında 2 px'lik bar.
-            int barBottom = hudButtons.RowBottomPx - 6;
+            // Can barının alt kenarı (ScoreHud ile aynı ölçüler; bar yüksekliği UI ölçeğinde 2 px).
+            int barBottom = hudButtons.RowBottomPx - ScoreHud.BarGapPx - 2 * ScreenLayout.UiScale;
             var labelCenter = new Vector2(screenLayout.RightPx + labelCenterOffset.x, barBottom + labelCenterOffset.y);
 
             root.localPosition = new Vector3(jitter.x / Playfield.PixelsPerUnit, jitter.y / Playfield.PixelsPerUnit, 0f);
@@ -155,7 +156,7 @@ namespace PixelBeat.UI
             Place(label.transform, labelCenter);
 
             int scale = bump ? glyphs.BumpScale : glyphs.NumberScale;
-            float advance = (PixelFont.GlyphWidth + PixelFont.Spacing) * scale;
+            float advance = (PixelFont.GlyphWidth + PixelFont.Spacing) * scale * ScreenLayout.UiScale;
             Vector2 numberCenter = labelCenter + up * numberAbovePx + along * numberAlongPx;
             int n = shownNumber.Length;
 

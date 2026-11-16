@@ -4,14 +4,20 @@ using UnityEngine;
 namespace PixelBeat.UI
 {
     /// <summary>
-    /// Kodla tanımlı 5x7 piksel font. Metinden runtime'da Point filtreli sprite üretir,
-    /// böylece yazılar 320x180 piksel ızgarasına tam oturur. Gerçek pixel font adım 6'da gelecek.
+    /// Kodla tanımlı 5x7 piksel font. Metinden runtime'da Point filtreli sprite üretir.
+    /// HUD yazıları <see cref="Core.ScreenLayout.UiScale"/> ile büyütülür (<see cref="UiGlyphHeight"/>).
     /// </summary>
     public static class PixelFont
     {
         public const int GlyphWidth = 5;
         public const int GlyphHeight = 7;
         public const int Spacing = 1;
+
+        /// <summary>UI ölçeğinde (PixelText) bir satırın yüksekliği (oyun pikseli).</summary>
+        public const int UiGlyphHeight = GlyphHeight * Core.ScreenLayout.UiScale;
+
+        /// <summary>UI ölçeğinde metin genişliği (oyun pikseli).</summary>
+        public static int MeasureUiWidth(string text, int scale = 1) => MeasureWidth(text) * scale * Core.ScreenLayout.UiScale;
 
         private static readonly Dictionary<char, string[]> Glyphs = new Dictionary<char, string[]>
         {
@@ -56,6 +62,7 @@ namespace PixelBeat.UI
             ['/'] = new[] { "....#", "....#", "...#.", "..#..", ".#...", "#....", "#...." },
             [':'] = new[] { ".....", "..#..", ".....", ".....", ".....", "..#..", "....." },
             ['.'] = new[] { ".....", ".....", ".....", ".....", ".....", ".....", "..#.." },
+            ['!'] = new[] { "..#..", "..#..", "..#..", "..#..", "..#..", ".....", "..#.." },
         };
 
         public static int MeasureWidth(string text) =>

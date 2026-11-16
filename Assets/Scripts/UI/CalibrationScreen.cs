@@ -38,7 +38,9 @@ namespace PixelBeat.UI
         [SerializeField] private PaletteRef warnColor = PaletteColor.Gold;
 
         private const int Order = 50;
-        private const int LineGap = 11;
+        /// <summary>UI ölçeği: konumlar 180 px dönemindeki değerlerin bu katı.</summary>
+        private const int S = ScreenLayout.UiScale;
+        private const int LineGap = 11 * S;
 
         private readonly List<double> diffs = new List<double>();
         private Phase phase = Phase.Closed;
@@ -75,7 +77,7 @@ namespace PixelBeat.UI
             note = PixelText.Create("Note", t, Order + 2);
             saveButton = new PixelButton(playfield, t, "KAYDET", Order + 2);
             retryButton = new PixelButton(playfield, t, "TEKRAR", Order + 2);
-            closeButton = new PixelButton(playfield, t, "KAPAT", Order + 2);
+            closeButton = new PixelButton(playfield, t, "KAPAT", Order + 2, PaletteColor.Magenta);
             crtButton = new PixelButton(playfield, t, "CRT: KAPALI", Order + 2);
 
             root.SetActive(false);
@@ -202,7 +204,7 @@ namespace PixelBeat.UI
             var l = screenLayout;
             Playfield.PlaceRect(overlay.transform, l.LeftPx, l.BottomPx, l.RightPx - l.LeftPx, l.HeightPx, playfield.PixelSprite.rect.width);
 
-            int top = l.SafeTopPx - 20;
+            int top = l.SafeTopPx - 20 * S;
             title.Set("KALIBRASYON", 0, top, PixelText.Align.Center, titleColor);
             line1.Set("SESLE BIRLIKTE", 0, top - 2 * LineGap, PixelText.Align.Center, textColor);
             line2.Set("EKRANA DOKUN", 0, top - 3 * LineGap, PixelText.Align.Center, textColor);
@@ -211,7 +213,7 @@ namespace PixelBeat.UI
             int crtW = PixelButton.WidthFor(crtButton.Text);
             crtButton.Place(-crtW / 2, top - 5 * LineGap - PixelButton.Height);
 
-            Playfield.PlaceRect(tapIndicator.transform, -6, 18, 12, 12, playfield.PixelSprite.rect.width);
+            Playfield.PlaceRect(tapIndicator.transform, -6 * S, 18 * S, 12 * S, 12 * S, playfield.PixelSprite.rect.width);
 
             bool canSave = Conductor.CanPersistUserOffset;
             if (phase == Phase.Measuring)
@@ -233,13 +235,13 @@ namespace PixelBeat.UI
             }
 
             // Butonlar safe area altında, tek sıra ortalı.
-            int by = l.SafeBottomPx + 8;
+            int by = l.SafeBottomPx + 8 * S;
             bool result = phase == Phase.Result;
             saveButton.Visible = result && canSave;
             retryButton.Visible = result;
             closeButton.Visible = true;
 
-            const int gap = 6;
+            const int gap = 6 * S;
             int total = PixelButton.WidthFor("KAPAT");
             if (retryButton.Visible) total += gap + PixelButton.WidthFor("TEKRAR");
             if (saveButton.Visible) total += gap + PixelButton.WidthFor("KAYDET");
