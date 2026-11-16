@@ -920,10 +920,11 @@ MonoBehaviour:
   gameSession: {fileID: 275090372}
   screenLayout: {fileID: 519420034}
   hudButtons: {fileID: 669285179}
+  glyphs: {fileID: 11400000, guid: cb3915a024395d845ae376807562cac5, type: 2}
   showFromStreak: 5
-  numberScale: 2
-  marginPx: 4
-  lineGapPx: 3
+  labelCenterOffset: {x: -28, y: -26}
+  numberAbovePx: 14
+  numberAlongPx: 0
   bumpSec: 0.15
   breakSec: 0.4
   tierColors:

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using PixelBeat.Core;
 using PixelBeat.Gameplay;
 using UnityEngine;
@@ -6,28 +5,32 @@ using UnityEngine;
 namespace PixelBeat.UI
 {
     /// <summary>
-    /// Perfect streak göstergesi (GDD §5): sağ üstte, can barının altında, 45° çapraz.
-    /// Pixel art bozulmasın diye döndürülmez; her karakter ayrı sprite olup bir öncekinden genişliği kadar
-    /// yukarıda durur (merdiven). Son karakter sağ üst köşeye hizalı, yazı sol alta uzanır.
-    /// Büyük sayı (2x) + altında ona paralel küçük "PERFECT". Streak 5'ten itibaren görünür.
-    /// Kademe atlarken kısa parlama + büyüme, kırılınca titreyip söner.
+    /// Perfect streak göstergesi (GDD §5): sağ üstte, can barının altında, saat yönünde ~35° dönük.
+    /// Çalışma anında hiçbir şey döndürülmez: "PERFECT" ve rakamlar <see cref="StreakGlyphSet"/>'teki önceden
+    /// döndürülmüş pixel sprite'lardır. Sayı, PERFECT'in üstünde aynı açıyla ve ona paralel durur; rakamlar
+    /// dönük taban çizgisi boyunca dizilir. Tüm konumlar tam piksele yuvarlanır.
+    /// Streak 5'ten itibaren görünür; kademe atlarken parlama + büyüme, kırılınca titreyip söner.
     /// </summary>
     public class StreakDisplay : MonoBehaviour
     {
         private const int Order = 20;
-        private const string Label = "PERFECT";
         private const int MaxDigits = 4;
 
         [SerializeField] private GameSession gameSession;
         [SerializeField] private ScreenLayout screenLayout;
         [SerializeField] private HudButtons hudButtons;
+        [Tooltip("Döndürülmüş sprite'lar. Açı bu asset'te ayarlanır (değiştirince 'Sprite'ları üret').")]
+        [SerializeField] private StreakGlyphSet glyphs;
 
         [SerializeField, Min(1)] private int showFromStreak = 5;
-        [SerializeField, Range(1, 4)] private int numberScale = 2;
-        [Tooltip("Can barının altından ve sağ kenardan boşluk (piksel).")]
-        [SerializeField, Min(0)] private int marginPx = 4;
-        [Tooltip("Sayı ile PERFECT satırı arası (piksel).")]
-        [SerializeField, Min(0)] private int lineGapPx = 3;
+
+        [Header("Konum (piksel)")]
+        [Tooltip("PERFECT'in merkezi: safe area sağ kenarı ve can barının altına göre.")]
+        [SerializeField] private Vector2Int labelCenterOffset = new Vector2Int(-28, -26);
+        [Tooltip("Sayının merkezi, PERFECT merkezinden dönük 'yukarı' yönde bu kadar uzakta.")]
+        [SerializeField] private int numberAbovePx = 14;
+        [Tooltip("Sayının merkezi, dönük yazı yönünde (+ = sağ-aşağı) kaydırma.")]
+        [SerializeField] private int numberAlongPx = 0;
 
         [Header("Animasyon (görsel, unscaled zaman)")]
         [SerializeField, Min(0.01f)] private float bumpSec = 0.15f;
@@ -43,11 +46,9 @@ namespace PixelBeat.UI
         };
         [SerializeField] private Color flashColor = Color.white;
 
-        private static readonly Dictionary<char, Sprite> GlyphCache = new Dictionary<char, Sprite>();
-
         private Transform root;
-        private SpriteRenderer[] numberGlyphs;
-        private SpriteRenderer[] labelGlyphs;
+        private SpriteRenderer label;
+        private SpriteRenderer[] digitRenderers;
 
         private int lastStreak;
         private string shownNumber = "";
@@ -60,16 +61,19 @@ namespace PixelBeat.UI
             root = new GameObject("Streak").transform;
             root.SetParent(transform, false);
 
-            numberGlyphs = new SpriteRenderer[MaxDigits];
-            for (int i = 0; i < MaxDigits; i++) numberGlyphs[i] = CreateGlyph($"Digit {i}");
+            label = CreateRenderer("Perfect");
+            digitRenderers = new SpriteRenderer[MaxDigits];
+            for (int i = 0; i < MaxDigits; i++) digitRenderers[i] = CreateRenderer($"Digit {i}");
 
-            labelGlyphs = new SpriteRenderer[Label.Length];
-            for (int i = 0; i < Label.Length; i++) labelGlyphs[i] = CreateGlyph($"Label {i}");
+            if (glyphs == null || !glyphs.IsBaked)
+                Debug.LogWarning("[StreakDisplay] StreakGlyphSet atanmamış ya da sprite'lar üretilmemiş (PixelBeat > Bake Streak Glyphs).");
+            else if (glyphs.NeedsRebake)
+                Debug.LogWarning($"[StreakDisplay] Sprite'lar {glyphs.BakedAngleDeg}° ile üretilmiş, ayar {glyphs.AngleDeg}°. Yeniden üret.");
 
             root.gameObject.SetActive(false);
         }
 
-        private SpriteRenderer CreateGlyph(string objName)
+        private SpriteRenderer CreateRenderer(string objName)
         {
             var go = new GameObject(objName);
             go.transform.SetParent(root, false);
@@ -78,19 +82,9 @@ namespace PixelBeat.UI
             return sr;
         }
 
-        private static Sprite Glyph(char c)
-        {
-            if (!GlyphCache.TryGetValue(c, out var sprite) || sprite == null)
-            {
-                sprite = PixelFont.CreateSprite(c.ToString(), Playfield.PixelsPerUnit);
-                GlyphCache[c] = sprite;
-            }
-            return sprite;
-        }
-
         private void Update()
         {
-            if (gameSession.State != GameSession.SessionState.Playing)
+            if (glyphs == null || !glyphs.IsBaked || gameSession.State != GameSession.SessionState.Playing)
             {
                 root.gameObject.SetActive(false);
                 lastStreak = 0;
@@ -98,9 +92,7 @@ namespace PixelBeat.UI
                 return;
             }
 
-            var k = gameSession.Keeper;
-            int streak = k.PerfectStreak;
-
+            int streak = gameSession.Keeper.PerfectStreak;
             if (streak != lastStreak)
             {
                 if (streak < lastStreak)
@@ -126,7 +118,7 @@ namespace PixelBeat.UI
             if (!visible) return;
 
             Color color = tierColors[Mathf.Clamp(shownTier, 0, tierColors.Length - 1)];
-            int scale = numberScale;
+            bool bump = false;
             Vector2Int jitter = Vector2Int.zero;
 
             if (breaking)
@@ -138,43 +130,38 @@ namespace PixelBeat.UI
             else if (bumpTimer > 0f)
             {
                 bumpTimer -= dt;
-                scale = numberScale + 1;
+                bump = true;
                 color = Color.Lerp(color, flashColor, Mathf.Clamp01(bumpTimer / bumpSec));
             }
 
-            Layout(scale, color, jitter);
+            Layout(bump, color, jitter);
         }
 
-        private void Layout(int scale, Color color, Vector2Int jitter)
+        private void Layout(bool bump, Color color, Vector2Int jitter)
         {
-            // Sağ üst köşe: can barının altı.
-            int anchorX = screenLayout.RightPx - marginPx;
-            int anchorY = hudButtons.RowBottomPx - marginPx - 2 - marginPx;
+            // Dönük eksenler (saat yönü θ): yazı yönü (cos, −sin) sağ-aşağı, "yukarı" (sin, cos).
+            float rad = glyphs.BakedAngleDeg * Mathf.Deg2Rad;
+            var along = new Vector2(Mathf.Cos(rad), -Mathf.Sin(rad));
+            var up = new Vector2(Mathf.Sin(rad), Mathf.Cos(rad));
+
+            // Can barının alt kenarı: HUD sırasının 4 px altında 2 px'lik bar.
+            int barBottom = hudButtons.RowBottomPx - 6;
+            var labelCenter = new Vector2(screenLayout.RightPx + labelCenterOffset.x, barBottom + labelCenterOffset.y);
+
             root.localPosition = new Vector3(jitter.x / Playfield.PixelsPerUnit, jitter.y / Playfield.PixelsPerUnit, 0f);
 
-            PlaceStair(numberGlyphs, shownNumber, anchorX, anchorY, scale, color);
+            label.sprite = glyphs.Label;
+            label.color = color;
+            Place(label.transform, labelCenter);
 
-            // 45° satırlar arası dikey mesafe: sayı yüksekliği + küçük yazının bir karakter genişliği + boşluk
-            // (yoksa sayının sol-alttaki rakamları PERFECT'in harflerine biner). Büyüme animasyonunda zıplamasın
-            // diye temel ölçek kullanılır.
-            int labelDrop = PixelFont.GlyphHeight * numberScale + PixelFont.GlyphWidth + lineGapPx;
-            PlaceStair(labelGlyphs, Label, anchorX, anchorY - labelDrop, 1, color);
-        }
+            int scale = bump ? glyphs.BumpScale : glyphs.NumberScale;
+            float advance = (PixelFont.GlyphWidth + PixelFont.Spacing) * scale;
+            Vector2 numberCenter = labelCenter + up * numberAbovePx + along * numberAlongPx;
+            int n = shownNumber.Length;
 
-        /// <summary>
-        /// Karakterleri 45° merdivende dizer: i. karakter son karaktere göre (n-1-i) adım sol-aşağıda.
-        /// Adım = karakter genişliği + boşluk (yatay ve dikey aynı → 45°). (topRightX, topRightY) son karakterin sağ üstü.
-        /// </summary>
-        private static void PlaceStair(SpriteRenderer[] glyphs, string text, int topRightX, int topRightY, int scale, Color color)
-        {
-            int n = text.Length;
-            int step = (PixelFont.GlyphWidth + PixelFont.Spacing) * scale;
-            int glyphW = PixelFont.GlyphWidth * scale;
-            int glyphH = PixelFont.GlyphHeight * scale;
-
-            for (int i = 0; i < glyphs.Length; i++)
+            for (int i = 0; i < digitRenderers.Length; i++)
             {
-                var sr = glyphs[i];
+                var sr = digitRenderers[i];
                 if (i >= n)
                 {
                     sr.enabled = false;
@@ -182,15 +169,17 @@ namespace PixelBeat.UI
                 }
 
                 sr.enabled = true;
-                sr.sprite = Glyph(text[i]); // önbellekten
+                sr.sprite = glyphs.Digit(shownNumber[i] - '0', bump);
                 sr.color = color;
-
-                int back = n - 1 - i;
-                int x = topRightX - glyphW - back * step;
-                int y = topRightY - glyphH - back * step;
-                sr.transform.localPosition = new Vector3(x / Playfield.PixelsPerUnit, y / Playfield.PixelsPerUnit, 0f);
-                sr.transform.localScale = new Vector3(scale, scale, 1f);
+                Place(sr.transform, numberCenter + along * ((i - (n - 1) * 0.5f) * advance));
             }
+        }
+
+        /// <summary>Merkez pivotlu (çift boyutlu) sprite'ı tam piksele oturtur.</summary>
+        private static void Place(Transform t, Vector2 centerPx)
+        {
+            t.localPosition = new Vector3(Mathf.Round(centerPx.x) / Playfield.PixelsPerUnit,
+                Mathf.Round(centerPx.y) / Playfield.PixelsPerUnit, 0f);
         }
     }
 }
