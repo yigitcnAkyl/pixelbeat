@@ -18,15 +18,23 @@ namespace PixelBeat.UI
         [SerializeField] private LaneInput laneInput;
         [SerializeField] private SongLoader songLoader;
         [SerializeField] private CalibrationScreen calibration;
+        [SerializeField] private GameSession gameSession;
 
         private PixelButton calButton;
         private PixelButton restartButton;
+
+        /// <summary>Üst buton sırasının alt kenarı (oyun pikseli). Skor yazısı ve can barı buna göre yerleşir.</summary>
+        public int RowBottomPx => screenLayout.SafeTopPx - MarginPx - PixelButton.Height;
+
+        /// <summary>Konum bir HUD butonunun üstünde mi (sonuç ekranında yeniden başlatma saymamak için).</summary>
+        public bool Contains(Vector2 px) => calButton.Contains(px) || restartButton.Contains(px);
 
         private void Awake()
         {
             calButton = new PixelButton(playfield, transform, "CAL", 20);
             restartButton = new PixelButton(playfield, transform, "R", 20);
             Layout();
+            if (gameSession != null) gameSession.IgnoreTouchAt = Contains;
         }
 
         private void OnEnable()
@@ -43,7 +51,7 @@ namespace PixelBeat.UI
 
         private void Layout()
         {
-            int y = screenLayout.SafeTopPx - MarginPx - PixelButton.Height;
+            int y = RowBottomPx;
             calButton.Place(screenLayout.LeftPx + MarginPx + 1, y);
             int rw = PixelButton.Height; // kare
             restartButton.Place(screenLayout.RightPx - MarginPx - 1 - rw, y, rw);

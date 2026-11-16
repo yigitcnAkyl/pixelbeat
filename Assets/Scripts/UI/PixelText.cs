@@ -23,7 +23,8 @@ namespace PixelBeat.UI
 
         /// <param name="xPx">Hizalama noktası (oyun pikseli)</param>
         /// <param name="yPx">Yazının alt kenarı (oyun pikseli)</param>
-        public void Set(string newText, int xPx, int yPx, Align align, Color color)
+        /// <param name="scale">Tam sayı büyütme (pixel art bozulmaz). Hizalama büyütülmüş genişliğe göre.</param>
+        public void Set(string newText, int xPx, int yPx, Align align, Color color, int scale = 1)
         {
             if (newText != text)
             {
@@ -32,10 +33,18 @@ namespace PixelBeat.UI
                 sr.sprite = string.IsNullOrEmpty(text) ? null : PixelFont.CreateSprite(text, Playfield.PixelsPerUnit);
             }
 
-            int w = PixelFont.MeasureWidth(text);
+            scale = Mathf.Max(1, scale);
+            transform.localScale = new Vector3(scale, scale, 1f);
+            int w = PixelFont.MeasureWidth(text) * scale;
             int x = align == Align.Left ? xPx : align == Align.Center ? xPx - w / 2 : xPx - w;
             transform.localPosition = new Vector3(x / Playfield.PixelsPerUnit, yPx / Playfield.PixelsPerUnit, 0f);
             sr.color = color;
+        }
+
+        public bool Visible
+        {
+            get => sr.enabled;
+            set => sr.enabled = value;
         }
 
         private void DestroySprite()

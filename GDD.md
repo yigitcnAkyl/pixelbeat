@@ -45,6 +45,9 @@
 - **Can:** 0–100, 100 ile başlar. Miss −8, Good +0, Great +1, Perfect +2 (en fazla 100).
   Can 0 olursa şarkı başarısız olur (müzik durur, "FAILED" gösterilir).
 - **Sonuç:** Şarkı bitince skor, max combo, her sonuçtan kaç tane ve harf derecesi (S/A/B/C/D) gösterilir.
+  - Harf derecesi eşikleri: **S ≥ 950.000**, **A ≥ 900.000**, **B ≥ 800.000**, **C ≥ 700.000**, altı **D**. Başarısız olunca derece verilmez.
+  - Miss yoksa "FULL COMBO", hepsi Perfect ise "ALL PERFECT" yazısı.
+  - Sonuç ekranı son değerlendirmeden 1 sn sonra açılır. FAILED / sonuç ekranında dokunmak (ya da R) baştan başlatır.
 
 ## 6. Zamanlama (teknik — kritik)
 - Tüm oyun zamanı `AudioSettings.dspTime` ile ölçülür. `Time.time` kullanılmaz.
@@ -93,7 +96,7 @@ Prototip: **1 şarkı, sadece oynanış.** Menü, şarkı seçimi, kayıt yok.
    - Başı kaçırılan hold: basış + bırakış MISS, tamamı gri akar. Kırılan hold'un kalan gövdesi gri akar.
    - Bırakış sonucu basış yazısının bir satır üstünde ayrı gösterilir. Hold tutulurken şerit parlar.
    - Beatmap yüklenirken aynı şeritte hold sürerken (bitişi dahil) başlayan nota uyarı verir.
-5. **Skor / combo / can:** Başarısızlık ve şarkı sonu sonuç yazısı.
+5. **Skor / combo / can:** Başarısızlık ve şarkı sonu sonuç yazısı. ✅
 6. **Otomatik beatmap üretici:** Editor aracı.
 7. **Neon görünüm:** Placeholder pixel art, efektler, geri bildirim.
 

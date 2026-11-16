@@ -1,0 +1,128 @@
+using System;
+using PixelBeat.Core;
+
+namespace PixelBeat.Gameplay
+{
+    public enum Grade
+    {
+        S,
+        A,
+        B,
+        C,
+        D
+    }
+
+    /// <summary>
+    /// GDD §5 skor / combo / can hesabı. Unity'ye bağımlı değil (birim testli).
+    /// Her değerlendirme (tap = 1, hold = basış + bırakış = 2) skordan eşit pay alır.
+    /// </summary>
+    public class ScoreKeeper
+    {
+        public const int MaxScore = 1_000_000;
+        public const int MaxHealth = 100;
+
+        // GDD §5 harf derecesi eşikleri (skor ≥ eşik).
+        public const int GradeS = 950_000;
+        public const int GradeA = 900_000;
+        public const int GradeB = 800_000;
+        public const int GradeC = 700_000;
+
+        private readonly int[] counts = new int[4];
+        private long points; // Perfect 100, Great 70, Good 40, Miss 0
+
+        /// <summary>Şarkıdaki toplam değerlendirme sayısı.</summary>
+        public int Total { get; private set; }
+        public int Judged { get; private set; }
+        public int Score { get; private set; }
+        public int Combo { get; private set; }
+        public int MaxCombo { get; private set; }
+        public int Health { get; private set; } = MaxHealth;
+        public bool IsFailed { get; private set; }
+
+        public bool IsComplete => Judged >= Total;
+        public bool IsFullCombo => IsComplete && !IsFailed && counts[(int)Judgement.Miss] == 0;
+        public bool IsAllPerfect => IsComplete && !IsFailed && counts[(int)Judgement.Perfect] == Total;
+        public Grade Grade => GradeFor(Score);
+
+        public int Count(Judgement j) => counts[(int)j];
+
+        public void Reset(int totalJudgements)
+        {
+            Total = Math.Max(0, totalJudgements);
+            Judged = 0;
+            Score = 0;
+            Combo = 0;
+            MaxCombo = 0;
+            Health = MaxHealth;
+            IsFailed = false;
+            points = 0;
+            Array.Clear(counts, 0, counts.Length);
+        }
+
+        /// <summary>Bir değerlendirme ekler. Başarısızlıktan ya da şarkı bittikten sonra yok sayılır (false döner).</summary>
+        public bool Add(Judgement j)
+        {
+            if (IsFailed || IsComplete) return false;
+
+            Judged++;
+            counts[(int)j]++;
+            points += PointsFor(j);
+            // Tam sayı aritmetiği: hepsi Perfect ise tam 1.000.000, asla aşmaz.
+            Score = (int)(points * MaxScore / (100L * Total));
+
+            if (j == Judgement.Miss)
+            {
+                Combo = 0;
+            }
+            else
+            {
+                Combo++;
+                if (Combo > MaxCombo) MaxCombo = Combo;
+            }
+
+            Health = Math.Max(0, Math.Min(MaxHealth, Health + HealthDelta(j)));
+            if (Health == 0) IsFailed = true;
+            return true;
+        }
+
+        public static int PointsFor(Judgement j)
+        {
+            switch (j)
+            {
+                case Judgement.Perfect: return 100;
+                case Judgement.Great: return 70;
+                case Judgement.Good: return 40;
+                default: return 0;
+            }
+        }
+
+        public static int HealthDelta(Judgement j)
+        {
+            switch (j)
+            {
+                case Judgement.Perfect: return 2;
+                case Judgement.Great: return 1;
+                case Judgement.Good: return 0;
+                default: return -8;
+            }
+        }
+
+        public static Grade GradeFor(int score)
+        {
+            if (score >= GradeS) return Grade.S;
+            if (score >= GradeA) return Grade.A;
+            if (score >= GradeB) return Grade.B;
+            if (score >= GradeC) return Grade.C;
+            return Grade.D;
+        }
+
+        /// <summary>Tap = 1, hold = 2 değerlendirme.</summary>
+        public static int TotalJudgementsFor(NoteChart chart)
+        {
+            if (chart == null) return 0;
+            int total = 0;
+            foreach (var n in chart.Notes) total += n.IsHold ? 2 : 1;
+            return total;
+        }
+    }
+}

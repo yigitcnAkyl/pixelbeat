@@ -24,6 +24,12 @@ namespace PixelBeat.Gameplay
 
         public Beatmap CurrentBeatmap { get; private set; }
 
+        /// <summary>Şarkı (yeniden) başladı: yeni chart.</summary>
+        public event System.Action<NoteChart> SongStarted;
+
+        /// <summary>Oynanış askıya alındı (kalibrasyon).</summary>
+        public event System.Action SongSuspended;
+
         /// <summary>Kalibrasyon ekranı açıkken true: oynanış durur, Conductor başkasınındır.</summary>
         public bool IsSuspended => suspended;
 
@@ -55,6 +61,7 @@ namespace PixelBeat.Gameplay
             conductor.Stop();
             judgementSystem.Load(null);
             noteSpawner.Load(null);
+            SongSuspended?.Invoke();
         }
 
         public void Restart()
@@ -80,6 +87,13 @@ namespace PixelBeat.Gameplay
             int beats = Mathf.CeilToInt((float)chart.LastBeat) + tailBeats;
             generatedClip = MetronomeClipGenerator.Create(CurrentBeatmap.bpm, beats, AudioSettings.outputSampleRate);
             conductor.Play(generatedClip);
+            SongStarted?.Invoke(chart);
+        }
+
+        /// <summary>Müziği ve oynanışı durdurur, notalar yerinde donar (FAILED / sonuç ekranı).</summary>
+        public void StopPlayback()
+        {
+            conductor.Stop();
         }
 
         private void OnDestroy()

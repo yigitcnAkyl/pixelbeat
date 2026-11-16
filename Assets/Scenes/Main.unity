@@ -134,6 +134,7 @@ GameObject:
   - component: {fileID: 275090367}
   - component: {fileID: 275090366}
   - component: {fileID: 275090365}
+  - component: {fileID: 275090372}
   m_Layer: 0
   m_Name: Gameplay
   m_TagString: Untagged
@@ -349,6 +350,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &275090372
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 275090364}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d9f77402cae2e704a8cab81e132c1ff3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PixelBeat.Gameplay.GameSession
+  conductor: {fileID: 364336860}
+  judgementSystem: {fileID: 275090369}
+  songLoader: {fileID: 275090365}
+  laneInput: {fileID: 275090370}
+  resultsDelaySec: 1
+  restartGuardSec: 0.6
 --- !u!1 &364336859
 GameObject:
   m_ObjectHideFlags: 0
@@ -768,6 +787,8 @@ GameObject:
   - component: {fileID: 669285181}
   - component: {fileID: 669285180}
   - component: {fileID: 669285179}
+  - component: {fileID: 669285183}
+  - component: {fileID: 669285182}
   m_Layer: 0
   m_Name: UI
   m_TagString: Untagged
@@ -792,6 +813,7 @@ MonoBehaviour:
   laneInput: {fileID: 275090370}
   songLoader: {fileID: 275090365}
   calibration: {fileID: 669285180}
+  gameSession: {fileID: 275090372}
 --- !u!114 &669285180
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -833,6 +855,55 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &669285182
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 669285178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7145180918dffa24ba7ae67ad7d7be11, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PixelBeat.UI.ResultScreen
+  gameSession: {fileID: 275090372}
+  playfield: {fileID: 275090368}
+  screenLayout: {fileID: 519420034}
+  overlayColor: {r: 0.043137256, g: 0.043137256, b: 0.08627451, a: 0.9411765}
+  failedColor: {r: 1, g: 0.2509804, b: 0.3764706, a: 1}
+  textColor: {r: 0.5411765, g: 0.5411765, b: 0.6901961, a: 1}
+  valueColor: {r: 1, g: 1, b: 1, a: 1}
+  specialColor: {r: 1, g: 0.8156863, b: 0.2509804, a: 1}
+  perfectColor: {r: 0.2, g: 1, b: 1, a: 1}
+  greatColor: {r: 0.4, g: 1, b: 0.4, a: 1}
+  goodColor: {r: 1, g: 0.8156863, b: 0.2509804, a: 1}
+  missColor: {r: 1, g: 0.2509804, b: 0.3764706, a: 1}
+--- !u!114 &669285183
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 669285178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cace85764dc5ea40ab14ea937b01e19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PixelBeat.UI.ScoreHud
+  gameSession: {fileID: 275090372}
+  playfield: {fileID: 275090368}
+  screenLayout: {fileID: 519420034}
+  hudButtons: {fileID: 669285179}
+  comboYPx: -4
+  comboScale: 2
+  healthBarHeightPx: 2
+  lowHealth: 30
+  scoreColor: {r: 1, g: 1, b: 1, a: 1}
+  comboColor: {r: 1, g: 0.2509804, b: 0.7529412, a: 1}
+  healthColor: {r: 0.2, g: 1, b: 1, a: 1}
+  lowHealthColor: {r: 1, g: 0.2509804, b: 0.3764706, a: 1}
+  healthBackColor: {r: 0.13333334, g: 0.13333334, b: 0.22745098, a: 1}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
